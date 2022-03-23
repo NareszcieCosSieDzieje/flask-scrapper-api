@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-# sys.path.insert(1, f"{Path(__file__).parent.parent}") # FIXME XD
+sys.path.insert(1, f"{Path(__file__).parent.parent}") # FIXME XD
 import requests
 import bs4
 import re
@@ -15,7 +15,7 @@ from frozendict import frozendict
 from models.schema import Smog
 from utils import to_float
 
-# FIXME CREATE UTILITY FOR GET LOGGING 
+# FIXME CREATE UTILITY FOR GET LOGGING
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 sh = logging.StreamHandler()
