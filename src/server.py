@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 from flask_apscheduler import APScheduler
 from flask_mail import Mail, Message
 from scrapping.scrapper import SmogScrapper, GovScrapper, SmogMapScrapper
-from models.schema import Smog, Email, sqlite_db # FIXME
+from models.schema import Smog, Email, sqlite_db  # FIXME
 from peewee import SqliteDatabase  # FIXME?
 # from flask_sqlalchemy import SQLAlchemy # FIXME WYWAL
 from pathlib import Path
@@ -41,7 +41,7 @@ if app.config['DEBUG']:
 elif app.config['TESTING']:
     database = SqliteDatabase(':memory:')
 
-database = SqliteDatabase(':memory:') # FIXME
+database = SqliteDatabase(':memory:')  # FIXME
 sqlite_db.initialize(database)
 database.create_tables([Email, Smog])
 Email.insert_many(["elo@gmail.com", "blabla@wp.pl"])
@@ -57,7 +57,16 @@ scheduler.start()
 def hello():
     return "Hello World!"
 
-# add /id ?
+
+@app.route('/smog/')
+@app.route('/smog/<int:id>', methods=['GET'])  # TODO: PO ID CZY STRING, to i to??
+def query_smog(id: int = None):
+    result = None
+    if id:
+        result: Smog = dict(Smog.select().where(Smog.id == id))
+    else:
+        result: list[Smog] = [dict(smog) for smog in Smog.select()]
+    return jsonify(result)
 
 
 @app.route('/emails/')
@@ -78,7 +87,7 @@ def query_emails(id: int = None):
 
 def send_mail(destination: str):
     # CREATE AN ACCOUNT? CZY KOLEJKCA ACCOUNTS
-    msg = Message('Hello from the other side!', sender =   'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+    msg = Message('Hello from the other side!', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
     msg.body = "Hey Paul, sending you this email from my Flask app, lmk if it works"
     mail.send(msg)
 
@@ -93,6 +102,7 @@ def scheduled_smog_scrapping():
         # print([vars(x) for x in parsed_smog_list if x is not None])
     # UPDATE DB
     # GET UPDATES!
+    # IF LEVELS ARE CRITICAL SEND EMAIL
 
 
 def main() -> None:
