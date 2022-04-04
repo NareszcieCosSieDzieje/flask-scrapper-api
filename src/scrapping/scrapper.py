@@ -45,7 +45,7 @@ class SmogScrapper(ABC):
             return False
         return True
 
-    @cached(cache=TTLCache(maxsize=100, ttl=60*60))  # FIXME MAXSIZE!!! USTALIC NA BAZIE LICZBY URL
+    @cached(cache=TTLCache(maxsize=100, ttl=60 * 60))  # FIXME MAXSIZE!!! USTALIC NA BAZIE LICZBY URL
     def get_html(self, url: str):
         if self._is_url_valid(url):
             try:
@@ -262,7 +262,6 @@ class SmogMapScrapper(SmogScrapper):
 
 
 def main() -> None:
-
     from pprint import pprint
     scrappers = (GovScrapper(), SmogMapScrapper(), )
     for scrapper in scrappers:
