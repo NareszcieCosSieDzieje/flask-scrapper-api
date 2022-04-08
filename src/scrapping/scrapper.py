@@ -129,7 +129,8 @@ class GovScrapper(SmogScrapper):
             measurement_timestamp: str = ""
             latest_measurement: list[str] = []
             not_found_indexes: set[int] = set([])
-            datetime_re: re.Pattern = re.compile(r"(?P<Day>\d{2})\.(?P<Month>\d{2})\.(?P<Year>\d{4}),\s+(?P<Time>\d+:\d+)")
+            datetime_re: re.Pattern = \
+                re.compile(r"(?P<Day>\d{2})\.(?P<Month>\d{2})\.(?P<Year>\d{4}),\s+(?P<Time>\d+:\d+)")
 
             for _, latest_data_row in list(reversed(table_rows.items()))[3:][:-2]:
                 current_measurement: list[str] = \
@@ -194,7 +195,7 @@ class GovScrapper(SmogScrapper):
 class SmogMapScrapper(SmogScrapper):
 
     def __init__(self):
-        self._logger: Logger = logger # FIXME!
+        self._logger: Logger = logger  # FIXME!
         self.__name__ = "SmogMapScrapper"
 
     # def parse_polanka(self) -> Smog:
