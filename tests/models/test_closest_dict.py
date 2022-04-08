@@ -302,7 +302,7 @@ class TestAirQualityIndexDict:
         )
 
 
-def main():
+def main() -> None:
     import sys
     sys.exit(pytest.main(["-qq -s"], plugins=[]))
 
