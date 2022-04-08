@@ -11,8 +11,8 @@ class ClosestDict(dict):
     def __new__(cls, *args, **kwargs):
         if(
             (args and type(args) is dict
-            # (args and all(list(map(lambda a: type(a) is dict, args)))
-            #  and any(list(map(lambda k: type(k) is not int, args.keys()))))
+             # (args and all(list(map(lambda a: type(a) is dict, args)))
+             #  and any(list(map(lambda k: type(k) is not int, args.keys()))))
              and any(list(map(lambda k: type(k) is not int, args.keys()))))
             or
             (kwargs and type(kwargs) is dict
@@ -113,8 +113,10 @@ class AirQualityIndexDict(ClosestDict):
                 if any(
                     type(a) is not AirQualityIndexDict.AirQualityIndexScale for a in args
                 ):
-                    raise ValueError("Method accepts "
-                                    "AirQualityIndexDict.AirQualityIndexScale arguments only.")
+                    raise ValueError(
+                        "Method accepts "
+                        "AirQualityIndexDict.AirQualityIndexScale arguments only."
+                    )
                 return func(*args)
             return wrapper
 
@@ -136,14 +138,26 @@ class AirQualityIndexDict(ClosestDict):
 
     def __init__(self, *args, **kwargs):
         if(
-            (args and type(args) is dict
-             and any(list(map(lambda k: type(k) is not AirQualityIndexDict.AirQualityIndexScale, args.values()))))
+            (
+                args and type(args) is dict
+                and any(list(map(
+                    lambda k: type(k) is not AirQualityIndexDict.AirQualityIndexScale,
+                    args.values()))
+                )
+            )
             or
-            (kwargs and type(kwargs) is dict
-             and any(list(map(lambda k: type(k) is not AirQualityIndexDict.AirQualityIndexScale, kwargs.values()))))
+            (
+                kwargs and type(kwargs) is dict
+                and any(list(map(
+                    lambda k: type(k) is not AirQualityIndexDict.AirQualityIndexScale,
+                    kwargs.values()))
+                )
+            )
         ):
-            raise ValueError("Dictionary accepts "
-                             "AirQualityIndexDict.AirQualityIndexScale values only.")
+            raise ValueError(
+                "Dictionary accepts "
+                "AirQualityIndexDict.AirQualityIndexScale values only."
+            )
         super(AirQualityIndexDict, self).__init__(*args, **kwargs)
         self.lower_bound: int = 0
 
