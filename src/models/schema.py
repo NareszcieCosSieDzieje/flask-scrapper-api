@@ -27,8 +27,10 @@ class Smog(BaseModel):
     SO2_unit = FixedCharField(max_length=5, default="µg/m3")
     C6H6_unit = FixedCharField(max_length=5, default="µg/m3")
     CO_unit = FixedCharField(max_length=5, default="µg/m3")
-    measurement_timestamp = DateTimeField(formats=r"%Y-%m-%d %H:%M:%S",
-                                          null=False)
+    measurement_timestamp = DateTimeField(
+        formats=r"%Y-%m-%d %H:%M:%S",
+        null=False
+    )
     ''' 2022-02-05 15:22:12 ''' # FIXME
 
     def __str__(self): # FIXME
@@ -188,7 +190,7 @@ class Email(BaseModel):
 
 
 def main() -> None:
-    smog: Smog = Smog(  # FIXME CHANGE VALUES
+    smog: Smog = Smog(  # FIXME CHANGE EXAMPLARY VALUES?
         PM10=12,
         PM2_5=800,
         O3=291,
