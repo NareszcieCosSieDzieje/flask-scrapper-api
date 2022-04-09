@@ -3,5 +3,4 @@
 *.{bat,[bB][aA][tT]} text eol=crlf
 *.sh text eol=lf
 
-* linguist-vendored
-*.py linguist-vendored=false
+*.j2 linguist-vendored=True
