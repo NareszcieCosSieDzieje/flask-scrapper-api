@@ -1,10 +1,12 @@
 from typing import Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def to_float(number: Any) -> float | None:
     try:
         return float(str(number).replace(',', '.'))
     except ValueError as e:
-        #  FIXME LOGGING {e}
-        print(f"Float conversion error: {e}") # FIXME CHANGE TO LOGGER
+        logger.debug(f"Float conversion error: {e}")
         return None
