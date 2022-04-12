@@ -1,4 +1,5 @@
 import pytest
+from typing import Any
 
 from src.models.closest_dict import ClosestDict, AirQualityIndexDict
 
@@ -40,7 +41,12 @@ class TestClosestDict:
             (41, 30),
         ]
     )
-    def test_get_closest_key_ceiling(self, temperature_dict, key: int, closest_key: int):
+    def test_get_closest_key_ceiling(
+        self,
+        temperature_dict: ClosestDict,
+        key: int,
+        closest_key: int
+    ):
         assert closest_key == temperature_dict._get_closest_key_ceiling(key)
 
     @pytest.mark.parametrize('key,value',
@@ -51,7 +57,12 @@ class TestClosestDict:
             (-124, -5.2),
         ]
     )
-    def test__setitem__(self, shared_dict, key, value):
+    def test__setitem__(
+        self,
+        shared_dict: ClosestDict,
+        key: int | float,
+        value: Any
+    ):
         shared_dict[key] = value
         assert shared_dict[key] == value
 
@@ -80,35 +91,41 @@ class TestClosestDict:
     def test__getitem__(self, temperature_dict, temperature, description):
         assert temperature_dict[temperature] == description
 
-    @pytest.mark.parametrize("non_integer_key",
+    @pytest.mark.parametrize("non_number_key",
         [
-            (-21.21, ),
-            (50.02, ),
             ("some string", ),
             ((1, 2), ),
             (("a", "b", "c"), ),
+            ([1, 2, "3"], ),
         ]
     )
-    def test_integer_key_restriction__setitem__(self, non_integer_key):
+    def test_integer_key_restriction__setitem__(self, non_number_key: Any):
         closest_dict: ClosestDict = ClosestDict()
-        with pytest.raises(ValueError) as e:  # FIXME e
-            closest_dict[non_integer_key] = None
+        with pytest.raises(ValueError) as NonNumberValueError:  # FIXME e
+            closest_dict[non_number_key] = None
+            assert (
+                "Dictionary accepts number keys only (int | float)."
+                in str(NonNumberValueError.value)
+            )
 
-    @pytest.mark.parametrize("non_integer_key",
+    @pytest.mark.parametrize("non_number_key",
         [
-            (-21.21, ),
-            (50.02, ),
             ("some string", ),
             ((1, 2), ),
             (("a", "b", "c"), ),
+            ([1, 2, "3"], ),
         ]
     )
-    def test_integer_key_restriction__getitem__(self, temperature_dict, non_integer_key):
-        with pytest.raises(ValueError) as NonIntegerValueError:
-            _ = temperature_dict[non_integer_key]
+    def test_integer_key_restriction__getitem__(
+        self,
+        temperature_dict: ClosestDict,
+        non_number_key: Any
+    ):
+        with pytest.raises(ValueError) as NonNumberValueError:
+            _ = temperature_dict[non_number_key]
             assert (
-                "Dictionary accepts integer keys only."
-                in str(NonIntegerValueError.value)
+                "Dictionary accepts number keys only (int | float)."
+                in str(NonNumberValueError.value)
             )
 
     def test_empty_dict__getitem__(self):
@@ -121,7 +138,10 @@ class TestClosestDict:
                 in str(EmptyDictKeyError.value)
             )
 
-    def test_lower_bound__getitem__(self, temperature_dict):
+    def test_lower_bound__getitem__(
+        self,
+        temperature_dict: ClosestDict
+    ):
         import sys
         with pytest.raises(KeyError) as LowerBoundKeyError:
             key: int = ~sys.maxsize - 1
@@ -221,12 +241,14 @@ class TestAirQualityIndexDict:
                 AirQualityIndexDict.AirQualityIndexScale.GOOD
             )
 
-        def test_air_quality_index_scale_min(self,
-                                             pm2_5_treshold: AirQualityIndexDict,
-                                             pm10_treshold: AirQualityIndexDict,
-                                             no2_treshold: AirQualityIndexDict,
-                                             o3_treshold: AirQualityIndexDict,
-                                             so2_treshold: AirQualityIndexDict):
+        def test_air_quality_index_scale_min(
+            self,
+            pm2_5_treshold: AirQualityIndexDict,
+            pm10_treshold: AirQualityIndexDict,
+            no2_treshold: AirQualityIndexDict,
+            o3_treshold: AirQualityIndexDict,
+            so2_treshold: AirQualityIndexDict
+        ):
             min: AirQualityIndexDict.AirQualityIndexScale = \
                 AirQualityIndexDict.AirQualityIndexScale.min(
                     pm2_5_treshold[9],  # good
@@ -239,12 +261,14 @@ class TestAirQualityIndexDict:
                 min == AirQualityIndexDict.AirQualityIndexScale.VERY_POOR
             )
 
-        def test_air_quality_index_scale_max(self,
-                                             pm2_5_treshold: AirQualityIndexDict,
-                                             pm10_treshold: AirQualityIndexDict,
-                                             no2_treshold: AirQualityIndexDict,
-                                             o3_treshold: AirQualityIndexDict,
-                                             so2_treshold: AirQualityIndexDict):
+        def test_air_quality_index_scale_max(
+            self,
+            pm2_5_treshold: AirQualityIndexDict,
+            pm10_treshold: AirQualityIndexDict,
+            no2_treshold: AirQualityIndexDict,
+            o3_treshold: AirQualityIndexDict,
+            so2_treshold: AirQualityIndexDict
+        ):
             max: AirQualityIndexDict.AirQualityIndexScale = \
                 AirQualityIndexDict.AirQualityIndexScale.max(
                     pm2_5_treshold[9],  # good
@@ -257,12 +281,14 @@ class TestAirQualityIndexDict:
                 max == AirQualityIndexDict.AirQualityIndexScale.GOOD
             )
 
-        def test_air_quality_index_scale_min_raises_value_error(self,
-                                                                pm2_5_treshold: AirQualityIndexDict,
-                                                                pm10_treshold: AirQualityIndexDict,
-                                                                no2_treshold: AirQualityIndexDict,
-                                                                o3_treshold: AirQualityIndexDict,
-                                                                so2_treshold: AirQualityIndexDict):
+        def test_air_quality_index_scale_min_raises_value_error(
+            self,
+            pm2_5_treshold: AirQualityIndexDict,
+            pm10_treshold: AirQualityIndexDict,
+            no2_treshold: AirQualityIndexDict,
+            o3_treshold: AirQualityIndexDict,
+            so2_treshold: AirQualityIndexDict
+        ):
             with pytest.raises(ValueError) as ArgsValueError:
                 AirQualityIndexDict.AirQualityIndexScale.min(
                     pm2_5_treshold[9],  # good
@@ -280,12 +306,14 @@ class TestAirQualityIndexDict:
                     in str(ArgsValueError.value)
                 )
 
-    def test_get_air_quality_index(self,
-                                   pm2_5_treshold: AirQualityIndexDict,
-                                   pm10_treshold: AirQualityIndexDict,
-                                   no2_treshold: AirQualityIndexDict,
-                                   o3_treshold: AirQualityIndexDict,
-                                   so2_treshold: AirQualityIndexDict):
+    def test_get_air_quality_index(
+        self,
+        pm2_5_treshold: AirQualityIndexDict,
+        pm10_treshold: AirQualityIndexDict,
+        no2_treshold: AirQualityIndexDict,
+        o3_treshold: AirQualityIndexDict,
+        so2_treshold: AirQualityIndexDict
+    ):
         min: AirQualityIndexDict.AirQualityIndexScale = \
             AirQualityIndexDict.get_air_quality_index(
                 *(
