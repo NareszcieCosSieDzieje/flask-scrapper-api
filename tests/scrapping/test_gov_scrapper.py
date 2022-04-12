@@ -4,8 +4,11 @@ import random
 from jinja2 import FileSystemLoader, Environment, Template
 import os
 
+# from src.logging_setup.init_logging import setup_logging  # FIXME
 from src.scrapping.scrapper import GovScrapper
-from src.models.schema import Smog
+from src.models.schema import Smog, smog_factory
+
+# setup_logging()  # FIXME
 
 
 class TestGovScrapper:
@@ -25,7 +28,7 @@ class TestGovScrapper:
 
     @pytest.fixture(scope="class")
     def dabrawskiego_template(self, jinja2_env: Environment) -> Template:
-        return jinja2_env.get_template('dabrawskiego.j2')
+        return jinja2_env.get_template('dabrowskiego.j2')
 
     @pytest.fixture(scope="class")
     def polanka_template(self, jinja2_env: Environment) -> Template:
@@ -41,10 +44,10 @@ class TestGovScrapper:
             'so2': "24,2",
             'c6h6': "0,1",
             'co': "0,2",
-            'measurement_timestamp': "",  # FIXME NAPRAW!
+            'measurement_timestamp': "2022-02-05 15:22:12",
         }
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture(scope="class")  # FIXME function
     def polanka_smog(self, smog_data: dict[str, str]) -> Smog:
         # FIXME: DODAJ ZMIENNE
         return Smog(
@@ -53,7 +56,7 @@ class TestGovScrapper:
             **smog_data,
         )
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture(scope="class")  # FIXME function
     def dabrawskiego_smog(self, smog_data: dict[str, str]) -> Smog:
         # FIXME: DODAJ ZMIENNE
         return Smog(
@@ -62,7 +65,7 @@ class TestGovScrapper:
             **smog_data,
         )
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture(scope="class")  # FIXME function
     def template_variables(
         self,
         smog_data: dict[str, str]
@@ -87,13 +90,13 @@ class TestGovScrapper:
                     # FIXME VALUES
                     'date': date,
                     'time': hour_str,
-                    'pm10': "",
-                    'pm2_5': "",
-                    'o3': "",
-                    'no2': "",
-                    'so2': "",
-                    'c6h6': "",
-                    'co': "",
+                    'pm10': f"{float(random.randint(0, 10000))/10}".replace('.', ','),  # FIXME UPEWNIJ SIE ZE KROPKA A NIE PRZECINEK JAKO STRING
+                    'pm2_5': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                    'o3': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                    'no2': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                    'so2': f"{float(random.randint(0, 13000)/10)}".replace('.', ','),
+                    'c6h6': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
+                    'co': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
                 }
                 if hour == hours[-1]:
                     table_row.update(last_row_data)
@@ -111,30 +114,30 @@ class TestGovScrapper:
                 }
             )
 
-        return {  # FIXME!
+        return {
             'table_rows': table_rows,
             'empty_rows': empty_rows,
-            'min_pm10': "",
-            'min_pm2_5': "",
-            'min_o3': "",
-            'min_no2': "",
-            'min_so2': "",
-            'min_c6h6': "",
-            'min_co': "",
-            'max_pm10': "",
-            'max_pm2_5': "",
-            'max_o3': "",
-            'max_no2': "",
-            'max_so2': "",
-            'max_c6h6': "",
-            'max_co': "",
-            'average_pm10': "",
-            'average_pm2_5': "",
-            'average_o3': "",
-            'average_no2': "",
-            'average_so2': "",
-            'average_c6h6': "",
-            'average_co': "",
+            'min_pm10': "6,1",
+            'min_pm2_5': "5,1",
+            'min_o3': "0",
+            'min_no2': "8,8",
+            'min_so2': "2,7",
+            'min_c6h6': "0",
+            'min_co': "0,1",
+            'max_pm10': "67,9",
+            'max_pm2_5': "52,1",
+            'max_o3': "90",
+            'max_no2': "91",
+            'max_so2': "16,2",
+            'max_c6h6': "0,3",
+            'max_co': "1,2",
+            'average_pm10': "19,1",
+            'average_pm2_5': "14,3",
+            'average_o3': "47,4",
+            'average_no2': "23,5",
+            'average_so2': "5,4",
+            'average_c6h6': "0,1",
+            'average_co': "0,3",
         }
 
     @pytest.fixture(scope="class")
