@@ -1,3 +1,5 @@
+from logging_setup.init_logging import setup_logging
+setup_logging()  # FIXME? here or after imports?
 # import sys
 # sys.path.insert(1, "..") # FIXME
 from flask import Flask, request, jsonify
@@ -6,7 +8,6 @@ from flask_mail import Mail, Message
 from scrapping.scrapper import SmogScrapper, GovScrapper, SmogMapScrapper
 from models.schema import Smog, Email, sqlite_db  # FIXME
 from peewee import SqliteDatabase  # FIXME?
-# from flask_sqlalchemy import SQLAlchemy # FIXME WYWAL
 from pathlib import Path
 
 # TODO: INITIALIZE DB
@@ -32,8 +33,6 @@ app = Flask(__name__)
 app.config.from_object(Config())
 mail = Mail(app)
 
-# db = SQLAlchemy(app)
-
 smog_db_path: Path = Path(__file__).parent / "database" / "smog.db"
 
 if app.config['DEBUG']:
@@ -44,7 +43,8 @@ elif app.config['TESTING']:
 database = SqliteDatabase(':memory:')  # FIXME
 sqlite_db.initialize(database)
 database.create_tables([Email, Smog])
-Email.insert_many(["elo@gmail.com", "blabla@wp.pl"])
+
+# Email.insert_many(["elo@gmail.com", "blabla@wp.pl"])  # FIXME
 
 # Configure our proxy to use the db we specified in config.
 
@@ -69,40 +69,57 @@ def query_smog(id: int = None):
     return jsonify(result)
 
 
-@app.route('/emails/')
-@app.route('/emails/<int:id>', methods=['GET'])
-def query_emails(id: int = None):
-    # name = request.args.get('name')
-    result = None
-    if id:
-        result: Email = dict(Email.select().where(Email.id == id))
-    else:
-        result: list[Email] = [dict(email) for email in Email.select()]
-    return jsonify(result)
+# @app.route('/emails/', methods=['GET', 'POST'])
+# @app.route('/emails/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+# def email_endpoint(id: int = None):
+#     result = None
+#     if id:
+#         result: Email = dict(Email.select().where(Email.id == id))
+#     else:
+#         result: list[Email] = [dict(email) for email in Email.select()]
+#     return jsonify(result)
+    # if request.method == 'GET':
 
-# @app.route('/', methods=['POST'])
-# @app.route('/', methods=['DELETE'])
-# @app.route('/', methods=['PUT'])
+    #     query_email(id)
+
+    # elif request.method == 'POST':
+    #     pass
+    # elif request.method == 'PUT':
+    #     pass
+    # elif request.method == 'DELETE':
+    #     pass
+
+    # # name = request.args.get('name')
+    # result = None
+    # if id:
+    #     result: Email = dict(Email.select().where(Email.id == id))
+    # else:
+    #     result: list[Email] = [dict(email) for email in Email.select()]
+    # return jsonify(result)
 
 
-def send_mail(destination: str):
-    # CREATE AN ACCOUNT? CZY KOLEJKCA ACCOUNTS
-    msg = Message('Hello from the other side!', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
-    msg.body = "Hey Paul, sending you this email from my Flask app, lmk if it works"
-    mail.send(msg)
+# def send_mail(destination: str):
+#     # CREATE AN ACCOUNT? CZY KOLEJKCA ACCOUNTS
+#     msg = Message('Hello from the other side!', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+#     msg.body = "Hey Paul, sending you this email from my Flask app, lmk if it works"
+#     mail.send(msg)
 
 
 @scheduler.task('cron', id='Periodically perform web-scrapping to get SMOG data', hour="6-8,18-20") # TODO: PARAMETRIZE
 # @scheduler.task('cron', id='Periodically perform web-scrapping to get SMOG data', second="*") # TODO: PARAMETRIZE
 # def scheduled_smog_scrapping(scrappers: list[SmogScrapper]):
 def scheduled_smog_scrapping():
+    parsed_smog_list: list[Smog] = []
     for scrapper in scrappers:
-        parsed_smog_list: list[Smog] = scrapper.parse_urls()
+        parsed_smog_list.extend(scrapper.parse_urls())
         print(parsed_smog_list)
-        # print([vars(x) for x in parsed_smog_list if x is not None])
-    # UPDATE DB
+
+    if parsed_smog_list:
+        with database.atomic():
+            Smog.bulk_create(parsed_smog_list, batch_size=10)
+    # print([vars(x) for x in parsed_smog_list if x is not None])
     # GET UPDATES!
-    # IF LEVELS ARE CRITICAL SEND EMAIL
+    # TODO: IF LEVELS ARE CRITICAL SEND EMAIL
 
 
 def main() -> None:
@@ -110,6 +127,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    # print(database.get_tables())
+    from datetime import datetime
+    for job in scheduler.get_jobs():
+        job.modify(next_run_time=datetime.now())
     main()
 
 # run cyclically
