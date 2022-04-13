@@ -35,7 +35,7 @@ class Smog(BaseModel):
     NO2_unit = FixedCharField(max_length=5, default="µg/m3")
     SO2_unit = FixedCharField(max_length=5, default="µg/m3")
     C6H6_unit = FixedCharField(max_length=5, default="µg/m3")
-    CO_unit = FixedCharField(max_length=5, default="µg/m3")
+    CO_unit = FixedCharField(max_length=5, default="mg/m3")
     measurement_timestamp = DateTimeField(
         formats=r"%Y-%m-%d %H:%M:%S",
         null=False
