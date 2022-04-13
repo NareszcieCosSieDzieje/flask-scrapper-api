@@ -6,7 +6,7 @@ import os
 
 # from src.logging_setup.init_logging import setup_logging  # FIXME
 from src.scrapping.scrapper import GovScrapper
-from src.models.schema import Smog, smog_factory
+from src.models.schema import Smog
 
 # setup_logging()  # FIXME
 
@@ -27,7 +27,7 @@ class TestGovScrapper:
         )
 
     @pytest.fixture(scope="class")
-    def dabrawskiego_template(self, jinja2_env: Environment) -> Template:
+    def dabrowskiego_template(self, jinja2_env: Environment) -> Template:
         return jinja2_env.get_template('dabrowskiego.j2')
 
     @pytest.fixture(scope="class")
@@ -35,68 +35,83 @@ class TestGovScrapper:
         return jinja2_env.get_template('polanka.j2')
 
     @pytest.fixture(scope="class")
-    def smog_data(self) -> dict[str, str]:
+    def timestamp_parameters(self) -> dict[str, int]:
         return {
-            'pm10': "8,2",
-            'pm2_5': "13,8",
-            'o3': "44,7",
-            'no2': "7,7",
-            'so2': "24,2",
-            'c6h6': "0,1",
-            'co': "0,2",
-            'measurement_timestamp': "2022-02-05 15:22:12",
+            'day': 5,
+            'hour': 17,
+            'month': 4,
+            'year': 2022,
+        }
+
+    @pytest.fixture(scope="class")
+    def smog_data(
+        self,
+        timestamp_parameters: dict[str, int]
+    ) -> dict[str, str | float]:
+        year: int = timestamp_parameters['year']
+        month: int = timestamp_parameters['month']
+        day: int = timestamp_parameters['day']
+        hour: int = timestamp_parameters['hour']
+        return {
+            'PM10': 8.2,
+            'PM2_5': 13.8,
+            'O3': 44.7,
+            'NO2': 7.7,
+            'SO2': 24.2,
+            'C6H6': 0.1,
+            'CO': 0.2,
+            'measurement_timestamp': f"{year}-0{month}-0{day} {hour}:00",
         }
 
     @pytest.fixture(scope="class")  # FIXME function
-    def polanka_smog(self, smog_data: dict[str, str]) -> Smog:
-        # FIXME: DODAJ ZMIENNE
+    def polanka_smog(self, smog_data: dict[str, str | float]) -> Smog:
         return Smog(
-            air_quality_index="FAIR",  # FIXME jak dodam co i c6j6 tresholdy moze sie zmienic
+            air_quality_index="FAIR",  # TODO: IT COULD IF C6H6 tresholds are added to aqindex
             site="Poznań , ul. Polanka",
             **smog_data,
         )
 
     @pytest.fixture(scope="class")  # FIXME function
-    def dabrawskiego_smog(self, smog_data: dict[str, str]) -> Smog:
-        # FIXME: DODAJ ZMIENNE
+    def dabrowskiego_smog(self, smog_data: dict[str, str | float]) -> Smog:
         return Smog(
-            air_quality_index="FAIR",  # FIXME jak dodam co i c6j6 tresholdy moze sie zmienic
-            site="Poznań, ul. Dąbrowskiego 169",
+            air_quality_index="FAIR",  # TODO: IT COULD IF C6H6 tresholds are added to aqindex
+            site="Poznań , ul. Dąbrowskiego 169",
             **smog_data,
         )
 
     @pytest.fixture(scope="class")  # FIXME function
     def template_variables(
         self,
-        smog_data: dict[str, str]
+        smog_data: dict[str, str | float],
+        timestamp_parameters: dict[str, int]
     ) -> dict[str, str | list[dict[str, str]]]:
 
         last_row_data: dict[str, str] = smog_data
         table_rows: list[dict[str, str]] = []
-        random_measurement_hour: int = random.randint(1, 24)
-        left_empty_hours: list[int] = list(range(24 - random_measurement_hour))
-        days: tuple[int, ...] = tuple(range(1, 6))
+        MEASUREMENT_DAY: int = timestamp_parameters['day']
+        MEASUREMENT_HOUR: int = timestamp_parameters['hour']
+        left_empty_hours: list[int] = list(range(24 - MEASUREMENT_HOUR))
+        days: tuple[int, ...] = tuple(range(1, MEASUREMENT_DAY + 1))
         hours: tuple[int, ...] = tuple(range(1, 24 + 1))
-        for day in days:  # TODO: JAKA LICZBA DNI?
+        for day in days:
             day_str: str = f"{day}" if len(str(day)) == 2 else f"0{day}"
             if day == days[-1]:
-                hours = tuple(range(1, random_measurement_hour + 1))
+                hours = tuple(range(1, MEASUREMENT_HOUR + 1))
                 # jesli ostatni dzien to niepelne godziny  # FIXME
-            date: str = f"{day_str}.04.2022"
+            date: str = f"{day_str}.0{timestamp_parameters['month']}.{timestamp_parameters['year']}"
             for hour in hours:
                 hour_str: str = f"{hour}" if len(str(hour)) == 2 else f"0{hour}"
                 hour_str += ":00"
                 table_row: dict[str, str] = {
-                    # FIXME VALUES
                     'date': date,
                     'time': hour_str,
-                    'pm10': f"{float(random.randint(0, 10000))/10}".replace('.', ','),  # FIXME UPEWNIJ SIE ZE KROPKA A NIE PRZECINEK JAKO STRING
-                    'pm2_5': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
-                    'o3': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
-                    'no2': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
-                    'so2': f"{float(random.randint(0, 13000)/10)}".replace('.', ','),
-                    'c6h6': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
-                    'co': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
+                    'PM10': f"{float(random.randint(0, 10000))/10}".replace('.', ','),
+                    'PM2_5': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                    'O3': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                    'NO2': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                    'SO2': f"{float(random.randint(0, 13000)/10)}".replace('.', ','),
+                    'C6H6': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
+                    'CO': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
                 }
                 if hour == hours[-1]:
                     table_row.update(last_row_data)
@@ -117,39 +132,39 @@ class TestGovScrapper:
         return {
             'table_rows': table_rows,
             'empty_rows': empty_rows,
-            'min_pm10': "6,1",
-            'min_pm2_5': "5,1",
-            'min_o3': "0",
-            'min_no2': "8,8",
-            'min_so2': "2,7",
-            'min_c6h6': "0",
-            'min_co': "0,1",
-            'max_pm10': "67,9",
-            'max_pm2_5': "52,1",
-            'max_o3': "90",
-            'max_no2': "91",
-            'max_so2': "16,2",
-            'max_c6h6': "0,3",
-            'max_co': "1,2",
-            'average_pm10': "19,1",
-            'average_pm2_5': "14,3",
-            'average_o3': "47,4",
-            'average_no2': "23,5",
-            'average_so2': "5,4",
-            'average_c6h6': "0,1",
-            'average_co': "0,3",
+            'min_PM10': "6,1",
+            'min_PM2_5': "5,1",
+            'min_O3': "0",
+            'min_NO2': "8,8",
+            'min_SO2': "2,7",
+            'min_C6H6': "0",
+            'min_CO': "0,1",
+            'max_PM10': "67,9",
+            'max_PM2_5': "52,1",
+            'max_O3': "90",
+            'max_NO2': "91",
+            'max_SO2': "16,2",
+            'max_C6H6': "0,3",
+            'max_CO': "1,2",
+            'average_PM10': "19,1",
+            'average_PM2_5': "14,3",
+            'average_O3': "47,4",
+            'average_NO2': "23,5",
+            'average_SO2': "5,4",
+            'average_C6H6': "0,1",
+            'average_CO': "0,3",
         }
 
     @pytest.fixture(scope="class")
-    def dabrawskiego_html(
+    def dabrowskiego_html(
         self,
         template_variables: dict[str, str | list[dict[str, str]]],
-        dabrawskiego_template: Template
+        dabrowskiego_template: Template
     ) -> str:
 
         template_variables.update(
             {
-                'title': (
+                'site': (
                     "Dane pomiarowe 			Poznań"
                     "			, ul. Dąbrowskiego 169"
                     " , tabele - GIOŚ"
@@ -157,7 +172,7 @@ class TestGovScrapper:
             }
         )
 
-        return dabrawskiego_template.render(**template_variables)
+        return dabrowskiego_template.render(**template_variables)
 
     @pytest.fixture(scope="class")
     def polanka_html(
@@ -168,7 +183,7 @@ class TestGovScrapper:
 
         template_variables.update(
             {
-                'title': (
+                'site': (
                     "Dane pomiarowe 			Poznań"
                     "			, ul. Polanka"
                     " , tabele - GIOŚ"
@@ -181,20 +196,20 @@ class TestGovScrapper:
     def test_parse_dabrowskiego_url(
         self,
         mocker: MockerFixture,
-        dabrawskiego_smog: Smog,
-        dabrawskiego_html: str
+        dabrowskiego_smog: Smog,
+        dabrowskiego_html: str
     ) -> None:
 
         gov_scrapper: GovScrapper = GovScrapper()
         mocker.patch.object(
             gov_scrapper,
             'get_html',
-            return_value=dabrawskiego_html
+            return_value=dabrowskiego_html
         )
-        dabrawskiego_smog_parsed: Smog = gov_scrapper.parse_dabrowskiego_url()
+        dabrowskiego_smog_parsed: Smog = gov_scrapper.parse_dabrowskiego_url()
 
         assert (
-            dabrawskiego_smog_parsed == dabrawskiego_smog
+            dabrowskiego_smog_parsed == dabrowskiego_smog
         )
 
     def test_parse_polanka_url(
