@@ -193,7 +193,6 @@ class GovScrapper(SmogScrapper):
             # air_quality_index? # FIXME?
             measurement_timestamp=measurement_timestamp,
         )
-        breakpoint()
         return parsed_smog
 
     def parse_dabrowskiego_url(self) -> Smog:
