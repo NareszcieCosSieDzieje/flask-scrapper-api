@@ -11,14 +11,16 @@ from frozendict import frozendict
 from typing import Callable
 from enum import Enum
 
-setup_logging()
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 try:
     from utils import to_float
 except ImportError as ie:
     # relative import if run from other package with the same level in the hierarchy
-    logger.warning(f"Could perform an import of a module inside a package, using a relative import.{ie}")
+    logger.warning(
+        "Could perform an import of a module inside "
+        f"a package, using a relative import.{ie}"
+    )
     from .utils import to_float
 
 if not __package__:
@@ -35,7 +37,7 @@ class Site(Enum):  # FIXME CZY WOGOLE UZYWAC use this??
     RATAJE=2
 
 
-    _logger = logging.getLogger(__name__)  # FIXME?
+class SmogScrapper(ABC):
 
     _parameter_re_patterns: frozendict[str, re.Pattern] = frozendict({
         'PM10': re.compile(r"pm10", re.IGNORECASE),
@@ -50,9 +52,10 @@ class Site(Enum):  # FIXME CZY WOGOLE UZYWAC use this??
     def _is_url_valid(self, url: str) -> bool:
         try:
             requests.get(url=url)
-        except requests.exceptions.InvalidURL as e:
+        except Exception as e:
+        # except requests.exceptions.InvalidURL as e:
             error_message: str = f"The given URL is invalid ({url})\n\t{e}"
-            self._logger.error(error_message)
+            logger.error(error_message)
             return False
         return True
 
@@ -61,13 +64,14 @@ class Site(Enum):  # FIXME CZY WOGOLE UZYWAC use this??
         if self._is_url_valid(url):
             try:
                 return requests.get(url).content.decode()
-            except requests.exceptions.RequestException as e:
+            except Exception as e:
+            # except requests.exceptions.RequestException as e:
                 error_message = f"Failed to perform a GET request on: ({url})\n\t{e}"
-                self._logger.error(error_message)
+                logger.error(error_message)
                 return ""
         else:
             error_message = "Failed to get_html for an invalid URL"
-            self._logger.error(error_message)
+            logger.error(error_message)
             return ""
 
     def parse_urls(self) -> list[Smog]:
@@ -90,7 +94,7 @@ class GovScrapper(SmogScrapper):
         self.__name__ = "GovScrapper"
 
     @staticmethod
-    def _find_district_name(soup: BeautifulSoup):
+    def _find_district_name(soup: BeautifulSoup) -> str:
         district_name: str = ""
         if district_paragraph := soup.find('p', class_="col-md-3 col-sm-10 col-xs-10 stacjainfo"):
             district_name = district_paragraph.text  # FIXME: obetnij?
