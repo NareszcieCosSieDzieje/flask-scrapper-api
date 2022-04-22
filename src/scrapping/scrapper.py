@@ -219,70 +219,192 @@ class SmogMapScrapper(SmogScrapper):
     def __init__(self):
         self.__name__ = "SmogMapScrapper"
 
-    def parse_smog_map_url(self) -> list[Smog]: # FIXME RET VAL
-        SMOG_MAP_URL: str = "https://smogmap.pl/poznan/"
-        smog_list: list[Smog] = []
-        html: str = self.get_html(url=SMOG_MAP_URL)
-        soup: BeautifulSoup = BeautifulSoup(html, 'html.parser')  # FIXME WRZUCIC TO DO GET_HTML?
 
-        if data_button := soup.find(id="panel_sound_btn"):
-            measurements_timestamp: str = data_button.text
-            timestamp_re: re.Pattern = re.compile(r"(?s).*?(?P<TimeStamp>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})")
-            if timestamp_match := timestamp_re.match(measurements_timestamp):
-                # if measurement_timestamp := timestamp_match['TimeStamp']:
-                #     measurement_timestamp =  # FIXME RESTRUCTURE AND MAKE A TIMESTAMP FOR PEEWEE
-                measurement_timestamp = timestamp_match['TimeStamp']
-        if data_table := soup.find(id="relayList"):
+    #  TODO: This method works, see if it could be useful in the future
+    # def parse_smog_map_url_general(self) -> list[Smog]: # FIXME RET VAL
+    #     SMOG_MAP_URL: str = "https://smogmap.pl/poznan/"
+    #     smog_list: list[Smog] = []
+    #     html: str = self.get_html(url=SMOG_MAP_URL)
+    #     soup: BeautifulSoup = BeautifulSoup(html, 'html.parser')  # FIXME WRZUCIC TO DO GET_HTML?
+
+    #     if data_button := soup.find(id="panel_sound_btn"):
+    #         measurements_timestamp: str = data_button.text
+    #         timestamp_re: re.Pattern = re.compile(
+    #             r"(?s).*?(?P<TimeStamp>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})"
+    #         )
+    #         if timestamp_match := timestamp_re.match(measurements_timestamp):
+    #             # if measurement_timestamp := timestamp_match['TimeStamp']:
+    #             #     measurement_timestamp =  # FIXME RESTRUCTURE AND MAKE A TIMESTAMP FOR PEEWEE
+    #             measurement_timestamp = timestamp_match['TimeStamp']
+    #     if data_table := soup.find(id="relayList"):
+    #         measurement_re: re.Pattern = re.compile(
+    #             r"(?s).*?:\s+(?P<Measurement>\d+([\.\,]\d+)?)\s+(?P<Unit>\S+)"
+    #         )
+    #         for table in data_table.find_all(class_="city"):
+    #             if relay := table.find(class_="relay"):
+    #                 district_smog_data: dict[int, str] = dict(
+    #                     enumerate(div.text for div in relay.find_all("div"))
+    #                 )
+    #                 district_name: str = district_smog_data.get(0, '')  # FIXME?
+    #                 air_quality_index: str = ""
+    #                 air_quality_index_re: re.Pattern = re.compile(
+    #                     r"polski\s+indeks\s+powietrze:\s+(?P<AirIndex>\S+)",
+    #                     re.IGNORECASE
+    #                 )
+
+    #                 parameter_re_patterns = self._parameter_re_patterns
+    #                 measurement_units: dict[str, str] = {}
+    #                 measurements: dict[str, float] = {}
+
+    #                 for row_text in district_smog_data.values():
+    #                     row_text: str = row_text.lower()
+    #                     if (
+    #                         not air_quality_index and
+    #                         (air_quality_index_match := air_quality_index_re.match(row_text))
+    #                     ):
+    #                         air_quality_index = air_quality_index_match['AirIndex']
+
+    #                     for parameter, parameter_re in parameter_re_patterns.items():
+    #                         if (
+    #                             (parameter_re.match(row_text)) and
+    #                             (parameter_match := measurement_re.match(row_text))
+    #                         ):
+    #                             measurements[parameter] = to_float(parameter_match['Measurement'])
+    #                             measurement_units[f"{parameter}_unit"] = parameter_match['Unit']
+
+    #                 parsed_smog: Smog = smog_factory(
+    #                     site=district_name,
+    #                     air_quality_index=air_quality_index,
+    #                     measurement_timestamp=measurement_timestamp,  # FIXME
+    #                     **measurements,
+    #                     **measurement_units,
+    #                 )
+    #                 smog_list.append(parsed_smog)
+    #         return smog_list
+
+    @cached(cache=TTLCache(maxsize=100, ttl=60 * 60))
+    def _parse_url(
+        self,
+        url: str,
+        district_name: str = ""
+    ) -> Smog:
+        html: str = self.get_html(url=url)
+        soup: BeautifulSoup = BeautifulSoup(html, 'html.parser')
+
+        measurement_timestamp: str = ""  # FIXME
+        measurements: dict[str, float | int] = {}
+        measurement_units: dict[str, str] = {}  # FIXME
+
+        if data_table := soup.find("table", class_="smogRelayInfo"):
+
+            parameter_re_patterns = self._parameter_re_patterns
+
+            parameter_columns: dict[str, int] = {
+                parameter: -1 for parameter in parameter_re_patterns
+            }
+
             measurement_re: re.Pattern = re.compile(
-                r"(?s).*?:\s+(?P<Measurement>\d+([\.\,]\d+)?)\s+(?P<Unit>\S+)"
+                r"(?s)\s*(?P<Measurement>\d+([\.\,]\d+)?)"
             )
-            for table in data_table.find_all(class_="city"):
-                if relay := table.find(class_="relay"):
-                    district_smog_data: dict[int, str] = dict(
-                        enumerate(div.text for div in relay.find_all("div"))
-                    )
-                    district_name: str = district_smog_data.get(0, '')  # FIXME?
-                    air_quality_index: str = ""
-                    air_quality_index_re: re.Pattern = re.compile(
-                        r"polski\s+indeks\s+powietrze:\s+(?P<AirIndex>\S+)",
-                        re.IGNORECASE
-                    )
 
-                    parameter_re_patterns = self._parameter_re_patterns
-                    measurement_units: dict[str, str] = {}
-                    measurements: dict[str, float] = {}
+            # measurement_units: dict[str, str] = {}  # FIXME DATA IS MISSING ON THE SITE'S DETAILED PAGE (only available on general)
+            table_head_columns: dict[int, str] = {}
 
-                    for row_text in district_smog_data.values():
-                        row_text: str = row_text.lower()
-                        if (not air_quality_index and
-                            (air_quality_index_match := air_quality_index_re.match(row_text))
+            if table_head := data_table.find("thead"):
+                table_head_columns = dict(
+                    enumerate(th.text for th in table_head.find_all("th"))
+                )
+
+            for idx, metric in table_head_columns.items():
+                for parameter, parameter_re in parameter_re_patterns.items():
+                    if parameter_re.match(metric):
+                        parameter_columns[parameter] = idx
+                        # measurement_units[f"{parameter}_unit"] = unit  # TODO:?
+
+            if table_body := data_table.find("tbody"):
+                indexes_not_found: set[int] = set()
+                datetime_re: re.Pattern = re.compile(
+                    r"(?P<Year>\d{4})-(?P<Month>\d{2})-(?P<Day>\d{2})\s+(?P<Time>\d+:\d+)"
+                )
+
+                for data_row in table_body.find_all("tr"):
+                    smog_data: dict[int, str] = dict(
+                        enumerate(td.text for td in data_row.find_all("td"))
+                    )
+                    # FIXME ADD MEASUREMENT TIMESTAMP AS 'DATA' in DICT
+                    for parameter, column_idx in parameter_columns.items():
+                        if(
+                            (parameter_match := measurement_re.match(smog_data[column_idx]))
+                            and
+                            (measurement := parameter_match['Measurement'])
                         ):
-                            air_quality_index = air_quality_index_match['AirIndex']
+                            measurements[parameter] = to_float(measurement)
+                            if column_idx in indexes_not_found:
+                                indexes_not_found.remove(column_idx)
+                        else:
+                            indexes_not_found.add(column_idx)
+                    if measurements and not measurement_timestamp:
+                        timestamp_match: re.Match | None = None
+                        for data in smog_data.values():
+                            if timestamp_match := datetime_re.match(data):
+                                break
+                        if timestamp_match:
+                            measurement_timestamp = (
+                                f"{timestamp_match['Year']}-"
+                                f"{timestamp_match['Month']}-"
+                                f"{timestamp_match['Day']} "
+                                f"{timestamp_match['Time']}"
+                            )
+                    if not indexes_not_found:
+                        break
+                    # measurement_units[f"{parameter}_unit"] = parameter_match['Unit']
 
-                        for parameter, parameter_re in parameter_re_patterns.items():
-                            if ((parameter_re.match(row_text)) and
-                                (parameter_match := measurement_re.match(row_text))):
-                                measurements[parameter] = to_float(parameter_match['Measurement'])
-                                measurement_units[f"{parameter}_unit"] = parameter_match['Unit']
+        return smog_factory(
+            site=district_name,
+            **measurements,
+            **measurement_units,
+            measurement_timestamp=measurement_timestamp,
+        )
 
-                    parsed_smog: Smog = smog_factory(
-                        site=district_name,
-                        air_quality_index=air_quality_index,
-                        measurement_timestamp=measurement_timestamp,  # FIXME
-                        **measurements,
-                        **measurement_units,
-                    )
-                    smog_list.append(parsed_smog)
-            return smog_list
+    # cache for 1hr
+    @cached(cache=TTLCache(maxsize=100, ttl=60 * 60))
+    def _get_site_urls(self) -> dict[str, str]:
+        SMOG_MAP_URL: str = "https://smogmap.pl/poznan/"
+        site_urls: dict[str, str] = {}
+        html: str = self.get_html(url=SMOG_MAP_URL)
+        soup: BeautifulSoup = BeautifulSoup(html, 'html.parser')
+        if data_table := soup.find(id="relayList"):
+            for a_elem in data_table.find_all('a'):
+                link: str = a_elem['href']
+                site_urls[a_elem.text] = SMOG_MAP_URL + link
+        return site_urls
 
-    # def parse_polanka(self) -> Smog:
-    #     pass
+    @cached(cache=TTLCache(maxsize=100, ttl=60 * 60))
+    def _get_site_url_and_district_name(self, site: str) -> str:
+        site_urls: dict[str, str] = self._get_site_urls()
+        site = site.lower()
+        for site_name, site_url in site_urls.items():
+            if site in site_name.lower():
+                return site_url, site_name
+        return "", ""
 
-    # def parse_dabrowskiego(self) -> Smog:
-    #     pass
+    def parse_polanka(self) -> Smog:
+        polanka_detail_url, district_name = (
+            self._get_site_url_and_district_name(site='polanka')
+        )
+        return self._parse_url(url=polanka_detail_url, district_name=district_name)
 
-    # def parse_rataje(self) -> Smog:
-    #     pass
+    def parse_dabrowskiego(self) -> Smog:
+        dabrowskiego_detail_url, district_name = (
+            self._get_site_url_and_district_name(site='dabrowskiego')
+        )
+        return self._parse_url(url=dabrowskiego_detail_url, district_name=district_name)
+
+    def parse_rataje(self) -> Smog:
+        rataje_detail_url, district_name = (
+            self._get_site_url_and_district_name(site='rataje')
+        )
+        return self._parse_url(url=rataje_detail_url, district_name=district_name)
 
 
 def main() -> None:
