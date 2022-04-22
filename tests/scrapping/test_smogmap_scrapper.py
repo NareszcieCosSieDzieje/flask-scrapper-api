@@ -10,5 +10,5 @@ def main() -> None:
     sys.exit(pytest.main(["-qq -s"], plugins=[]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
