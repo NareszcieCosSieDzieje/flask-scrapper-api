@@ -2,7 +2,10 @@ from typing import Any, Callable
 from functools import wraps
 import sys
 from enum import Enum
+import logging
 # from collections.abc import MutableMapping
+
+logger: logging.Logger = logging.getLogger(__name__)  # TODO: MOVE LOGGER LOWER?
 
 
 class ClosestDict(dict):
@@ -20,7 +23,9 @@ class ClosestDict(dict):
                 and any(list(map(lambda k: type(k) not in (int, float), kwargs.keys())))
             )
         ):
-            raise ValueError("Dictionary accepts number keys only (int | float).")
+            error_msg: str = "Dictionary accepts number keys only (int | float)."
+            logger.error(error_msg)
+            raise ValueError(error_msg)
         return super(ClosestDict, cls).__new__(cls)
 
     def __init__(self, *args, **kwargs):
@@ -34,11 +39,15 @@ class ClosestDict(dict):
 
         def wrapper(self, key: int | float | None, value: Any | None = None) -> Any:
             if type(key) not in (int, float):
-                raise ValueError("Dictionary accepts integer and float keys only.")
+                error_msg: str = "Dictionary accepts integer and float keys only."
+                logger.error(error_msg)
+                raise ValueError(error_msg)
             elif key < self.lower_bound:
-                raise KeyError(
+                error_msg: str = (
                     f"Given key: ({key}) is less than the lower bound: ({self.lower_bound})"
                 )
+                logger.error(error_msg)
+                raise KeyError(error_msg)
             if func.__name__ == "__setitem__":
                 return func(self, key, value)
             return func(self, key)
@@ -56,7 +65,11 @@ class ClosestDict(dict):
     @_is_key_valid
     def __getitem__(self, key: int | float):
         if len(self) == 0:
-            raise KeyError(f"Cannot get value for key: ({key}) from an empty dictionary.")
+            error_msg: str = (
+                f"Cannot get value for key: ({key}) from an empty dictionary."
+            )
+            logger.error(error_msg)
+            raise KeyError(error_msg)
         new_key: int | None = self._get_closest_key_ceiling(key)
         return super(ClosestDict, self).__getitem__(new_key)
 
@@ -106,10 +119,12 @@ class AirQualityIndexDict(ClosestDict):
                 if any(
                     type(a) is not AirQualityIndexDict.AirQualityIndexScale for a in args
                 ):
-                    raise ValueError(
+                    error_msg: str = (
                         "Method accepts "
                         "AirQualityIndexDict.AirQualityIndexScale arguments only."
                     )
+                    logger.error(error_msg)
+                    raise ValueError(error_msg)
                 return func(*args)
             return wrapper
 
@@ -147,10 +162,12 @@ class AirQualityIndexDict(ClosestDict):
                 )
             )
         ):
-            raise ValueError(
+            error_msg: str = (
                 "Dictionary accepts "
                 "AirQualityIndexDict.AirQualityIndexScale values only."
             )
+            logger.error(error_msg)
+            raise ValueError(error_msg)
         super(AirQualityIndexDict, self).__init__(*args, **kwargs)
         self.lower_bound: float = 0.0
 
@@ -175,5 +192,7 @@ def main() -> None:
     print(x)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    from logging_setup.init_logging import setup_logging
+    setup_logging()
     main()
