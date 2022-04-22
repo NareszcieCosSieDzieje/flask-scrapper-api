@@ -295,6 +295,6 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    import sys
-    assert sys.version_info >= (3, 10), "The script requires Python 3.10+."
+    from logging_setup.init_logging import setup_logging
+    setup_logging()
     main()
