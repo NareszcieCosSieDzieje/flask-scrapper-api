@@ -10,13 +10,20 @@ from peewee import (
     CharField
 )
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
+
+if not __package__:  # FIXME paths suck dont they !
+    import sys
+    from pathlib import Path
+    sys.path.insert(1, f"{Path(__file__).parent.parent}")
 
 try:
     from closest_dict import AirQualityIndexDict
 except ImportError as ie:
     # relative import if run from other package with the same level in the hierarchy
-    logger.warning(f"Could perform an import of a module inside a package, using a relative import.{ie}")
+    logger.warning(
+        f"Could perform an import of a module inside a package, using a relative import.{ie}"
+    )
     from .closest_dict import AirQualityIndexDict
 
 sqlite_db = DatabaseProxy()
