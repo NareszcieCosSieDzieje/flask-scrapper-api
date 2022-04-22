@@ -9,7 +9,7 @@ import logging
 import logging
 from frozendict import frozendict
 from typing import Callable
-from logging_setup.init_logging import setup_logging
+from enum import Enum
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -29,7 +29,11 @@ if not __package__:
 from models.schema import Smog, smog_factory
 
 
-class SmogScrapper(ABC):
+class Site(Enum):  # FIXME CZY WOGOLE UZYWAC use this??
+    POLANKA=0
+    DABROWSKIEGO=1
+    RATAJE=2
+
 
     _logger = logging.getLogger(__name__)  # FIXME?
 
