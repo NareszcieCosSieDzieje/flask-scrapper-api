@@ -26,25 +26,26 @@ except ImportError as ie:
     )
     from .closest_dict import AirQualityIndexDict
 
-sqlite_db = DatabaseProxy()
+
+sqlite_db: DatabaseProxy = DatabaseProxy()
 
 
 class BaseModel(Model):
     class Meta:
-        database = sqlite_db
+        database: DatabaseProxy = sqlite_db
 
 
 # TODO: ID FOR SITE?
 class Smog(BaseModel):
     site = TextField(null=False)
-    air_quality_index = TextField(default=None)
-    PM10 = FloatField(default=None)
-    PM2_5 = FloatField(default=None)
-    O3 = FloatField(default=None)
-    NO2 = FloatField(default=None)
-    SO2 = FloatField(default=None)
-    C6H6 = FloatField(default=None)
-    CO = FloatField(default=None)
+    air_quality_index = TextField(default=None, null=True)
+    PM10 = FloatField(default=None, null=True)
+    PM2_5 = FloatField(default=None, null=True)
+    O3 = FloatField(default=None, null=True)
+    NO2 = FloatField(default=None, null=True)
+    SO2 = FloatField(default=None, null=True)
+    C6H6 = FloatField(default=None, null=True)
+    CO = FloatField(default=None, null=True)
     PM10_unit = FixedCharField(max_length=5, default="µg/m3")
     PM2_5_unit = FixedCharField(max_length=5, default="µg/m3")
     O3_unit = FixedCharField(max_length=5, default="µg/m3")
