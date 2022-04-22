@@ -191,27 +191,26 @@ class GovScrapper(SmogScrapper):
                     break
 
         measurements: dict[str, float] = {
-            parameter: latest_measurement[column_idx] for parameter, column_idx in parameter_columns.items()
+            parameter: latest_measurement[column_idx]
+            for parameter, column_idx in parameter_columns.items()
         }
 
-        parsed_smog: Smog = smog_factory(
+        return smog_factory(
             site=district_name,
             **measurements,
             **measurement_units,
-            # air_quality_index? # FIXME?
             measurement_timestamp=measurement_timestamp,
         )
-        return parsed_smog
 
     def parse_dabrowskiego_url(self) -> Smog:
-        DABRAWSKIEGO_URL: str = "https://powietrze.gios.gov.pl/pjp/current/station_details/table/944/3/0"
+        DABROWSKIEGO_URL: str = "https://powietrze.gios.gov.pl/pjp/current/station_details/table/944/3/0"
         DISTRICT_NAME: str = "Poznań, ul. Dąbrowskiego 169"
-        return self._parse_url(url=DABRAWSKIEGO_URL, district_name=DISTRICT_NAME)
+        return self._parse_url(url=DABROWSKIEGO_URL, district_name=DISTRICT_NAME)
 
     def parse_polanka_url(self) -> Smog:
         POLANKA_URL: str = "https://powietrze.gios.gov.pl/pjp/current/station_details/table/943/3/0"
-        DABRAWSKIEGO_URL: str = "Poznań, ul. Polanka"
-        return self._parse_url(url=POLANKA_URL, district_name=DABRAWSKIEGO_URL)
+        DISTRICT_NAME: str = "Poznań, ul. Polanka"
+        return self._parse_url(url=POLANKA_URL, district_name=DISTRICT_NAME)
 
 
 class SmogMapScrapper(SmogScrapper):
