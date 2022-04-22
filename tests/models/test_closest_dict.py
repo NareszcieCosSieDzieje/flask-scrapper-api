@@ -10,12 +10,12 @@ class TestClosestDict:
     def temperature_dict(self) -> ClosestDict:
         return ClosestDict(
             {
-                -20: 'Super Freezing',
-                -10: 'Freezing',
-                0: 'Cold',
-                10: 'Chilly',
-                20: 'Warm',
-                30: 'Hot',
+                -20: "Super Freezing",
+                -10: "Freezing",
+                0: "Cold",
+                10: "Chilly",
+                20: "Warm",
+                30: "Hot",
             }
         )
 
@@ -23,7 +23,8 @@ class TestClosestDict:
     def shared_dict(self) -> ClosestDict():
         return ClosestDict()
 
-    @pytest.mark.parametrize('key,closest_key',
+    @pytest.mark.parametrize(
+        "key,closest_key",
         [
             (-100, -20),
             (-21, -20),
@@ -49,7 +50,8 @@ class TestClosestDict:
     ):
         assert closest_key == temperature_dict._get_closest_key_ceiling(key)
 
-    @pytest.mark.parametrize('key,value',
+    @pytest.mark.parametrize(
+        "key,value",
         [
             (-124, "Some String Value"),
             (-124, 999),
@@ -62,11 +64,12 @@ class TestClosestDict:
         shared_dict: ClosestDict,
         key: int | float,
         value: Any
-    ):
+    ) -> None:
         shared_dict[key] = value
         assert shared_dict[key] == value
 
-    @pytest.mark.parametrize("temperature,description",
+    @pytest.mark.parametrize(
+        "temperature,description",
         [
             (-80, "Super Freezing"),
             (-70, "Super Freezing"),
@@ -88,7 +91,7 @@ class TestClosestDict:
             (70, "Hot"),
         ]
     )
-    def test__getitem__(self, temperature_dict, temperature, description):
+    def test__getitem__(self, temperature_dict, temperature, description) -> None:
         assert temperature_dict[temperature] == description
 
     @pytest.mark.parametrize("non_number_key",
@@ -99,7 +102,7 @@ class TestClosestDict:
             ([1, 2, "3"], ),
         ]
     )
-    def test_integer_key_restriction__setitem__(self, non_number_key: Any):
+    def test_integer_key_restriction__setitem__(self, non_number_key: Any) -> None:
         closest_dict: ClosestDict = ClosestDict()
         with pytest.raises(ValueError) as NonNumberValueError:  # FIXME e
             closest_dict[non_number_key] = None
@@ -120,7 +123,7 @@ class TestClosestDict:
         self,
         temperature_dict: ClosestDict,
         non_number_key: Any
-    ):
+    ) -> None:
         with pytest.raises(ValueError) as NonNumberValueError:
             _ = temperature_dict[non_number_key]
             assert (
@@ -128,7 +131,7 @@ class TestClosestDict:
                 in str(NonNumberValueError.value)
             )
 
-    def test_empty_dict__getitem__(self):
+    def test_empty_dict__getitem__(self) -> None:
         empty_dict: ClosestDict = ClosestDict()
         with pytest.raises(KeyError) as EmptyDictKeyError:
             key: int = 10
@@ -141,7 +144,7 @@ class TestClosestDict:
     def test_lower_bound__getitem__(
         self,
         temperature_dict: ClosestDict
-    ):
+    ) -> None:
         import sys
         with pytest.raises(KeyError) as LowerBoundKeyError:
             key: int = ~sys.maxsize - 1
@@ -269,7 +272,7 @@ class TestAirQualityIndexDict:
             o3_treshold: AirQualityIndexDict,
             so2_treshold: AirQualityIndexDict
         ):
-            max: AirQualityIndexDict.AirQualityIndexScale = \
+            max_index: AirQualityIndexDict.AirQualityIndexScale = \
                 AirQualityIndexDict.AirQualityIndexScale.max(
                     pm2_5_treshold[9],  # good
                     pm10_treshold[11],  # fair
@@ -278,7 +281,7 @@ class TestAirQualityIndexDict:
                     so2_treshold[749],  # very poor
                 )
             assert (
-                max == AirQualityIndexDict.AirQualityIndexScale.GOOD
+                max_index == AirQualityIndexDict.AirQualityIndexScale.GOOD
             )
 
         def test_air_quality_index_scale_min_raises_value_error(
@@ -301,8 +304,10 @@ class TestAirQualityIndexDict:
                     2.2,
                 )
                 assert (
-                    ("Method accepts "
-                     "AirQualityIndexDict.AirQualityIndexScale arguments only.")
+                    (
+                        "Method accepts "
+                        "AirQualityIndexDict.AirQualityIndexScale arguments only."
+                    )
                     in str(ArgsValueError.value)
                 )
 
@@ -314,7 +319,7 @@ class TestAirQualityIndexDict:
         o3_treshold: AirQualityIndexDict,
         so2_treshold: AirQualityIndexDict
     ):
-        min: AirQualityIndexDict.AirQualityIndexScale = \
+        min_index: AirQualityIndexDict.AirQualityIndexScale = \
             AirQualityIndexDict.get_air_quality_index(
                 *(
                     pm2_5_treshold[9],  # good
@@ -326,7 +331,7 @@ class TestAirQualityIndexDict:
             )
 
         assert (
-            min == AirQualityIndexDict.AirQualityIndexScale.VERY_POOR
+            min_index == AirQualityIndexDict.AirQualityIndexScale.VERY_POOR
         )
 
 
@@ -335,5 +340,5 @@ def main() -> None:
     sys.exit(pytest.main(["-qq -s"], plugins=[]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
