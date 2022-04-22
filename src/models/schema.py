@@ -1,5 +1,14 @@
-from peewee import DatabaseProxy, Model, TextField, FloatField, FixedCharField, DateTimeField
 import logging
+from peewee import (
+    Database,
+    DatabaseProxy,
+    Model,
+    TextField,
+    FloatField,
+    FixedCharField,
+    DateTimeField,
+    CharField
+)
 
 logger = logging.getLogger(__name__)
 
