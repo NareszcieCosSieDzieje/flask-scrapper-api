@@ -213,14 +213,22 @@ class Smog(BaseModel):
 
 
 def smog_factory(*args, **kwargs) -> Smog:
+    # FIXME ADD SOME DATA VALIDATION? AND CHECK IF SMOG CAN BE CREATED? TRY CATCH?
     smog: Smog = Smog(*args, **kwargs)
     smog.set_air_quality_index()
     return smog
 
 
 class Email(BaseModel):
-    # TODO: ...
-    email = TextField(null=False)
+    address = CharField(null=False)
+
+    def __str__(self) -> str:
+        return (
+            f"{self.address}\n"
+        )
+
+    def __repr__(self) -> str:
+        return f"{vars(self)}"
 
 
 def main() -> None:
@@ -253,6 +261,11 @@ def main() -> None:
     print('-' * 40)
     print('Smog2')
     print(vars(smog2))
+
+    email: Email = Email(
+        address="example@gmail.com"
+    )
+    print(email)
 
 
 if __name__ == '__main__':
