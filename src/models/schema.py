@@ -268,5 +268,7 @@ def main() -> None:
     print(email)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    from logging_setup.init_logging import setup_logging
+    setup_logging()
     main()
