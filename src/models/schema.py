@@ -59,25 +59,28 @@ class Smog(BaseModel):
     )
 
     def __eq__(self, other) -> bool:
-        return (
-            self.site == other.site and
-            self.air_quality_index == other.air_quality_index and
-            self.PM10 == other.PM10 and
-            self.PM2_5 == other.PM2_5 and
-            self.O3 == other.O3 and
-            self.NO2 == other.NO2 and
-            self.SO2 == other.SO2 and
-            self.C6H6 == other.C6H6 and
-            self.CO == other.CO and
-            self.PM10_unit == other.PM10_unit and
-            self.PM2_5_unit == other.PM2_5_unit and
-            self.O3_unit == other.O3_unit and
-            self.NO2_unit == other.NO2_unit and
-            self.SO2_unit == other.SO2_unit and
-            self.C6H6_unit == other.C6H6_unit and
-            self.CO_unit == other.CO_unit and
-            self.measurement_timestamp == other.measurement_timestamp
-        )
+        if type(self) is type(other):
+            return (
+                self.site == other.site and
+                self.air_quality_index == other.air_quality_index and
+                self.PM10 == other.PM10 and
+                self.PM2_5 == other.PM2_5 and
+                self.O3 == other.O3 and
+                self.NO2 == other.NO2 and
+                self.SO2 == other.SO2 and
+                self.C6H6 == other.C6H6 and
+                self.CO == other.CO and
+                self.PM10_unit == other.PM10_unit and
+                self.PM2_5_unit == other.PM2_5_unit and
+                self.O3_unit == other.O3_unit and
+                self.NO2_unit == other.NO2_unit and
+                self.SO2_unit == other.SO2_unit and
+                self.C6H6_unit == other.C6H6_unit and
+                self.CO_unit == other.CO_unit and
+                self.measurement_timestamp == other.measurement_timestamp
+            )
+        else:
+            return False
 
     def __str__(self) -> str:
         return (
