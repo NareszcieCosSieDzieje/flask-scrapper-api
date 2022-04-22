@@ -107,6 +107,7 @@ class GovScrapper(SmogScrapper):
         return district_name
 
     # TODO: divide into smaller chunks?
+    @cached(cache=TTLCache(maxsize=100, ttl=60 * 60))
     def _parse_url(
         self,
         url: str,
