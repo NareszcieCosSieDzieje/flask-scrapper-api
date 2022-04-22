@@ -2,9 +2,23 @@ import yaml
 import logging
 import logging.config
 from pathlib import Path
+from typing import Callable, Any
 
 
-def setup_logging(default_path: Path = Path("config.yaml"), default_level: int = logging.DEBUG):
+def make_singleton(func: Callable) -> Callable:
+    def wrapper(*args, **kwargs) -> Any:
+        if not hasattr(func, '__singleton__'):
+            setattr(func, '__singleton__', True)
+            return func(*args, **kwargs)
+        return None
+    return wrapper
+
+
+@make_singleton
+def setup_logging(
+    default_path: Path = (Path(__file__).parent / Path("config.yaml")),
+    default_level: int = logging.DEBUG
+) -> None:
     use_default: bool = True
     if default_path.is_file():
         with default_path.open('rt') as logging_config_file:
@@ -21,6 +35,10 @@ def setup_logging(default_path: Path = Path("config.yaml"), default_level: int =
     if use_default:
         print("Fallback to defaults.")
         logging.basicConfig(level=default_level)
+
+
+# auto setup on import
+# setup_logging()  # FIXME?
 
 
 def main() -> None:
