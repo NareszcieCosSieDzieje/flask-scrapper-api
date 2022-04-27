@@ -1,7 +1,9 @@
 import models
 import scrapping
+import logging_setup
 
 __all__ = [
     models,
-    scrapping
+    scrapping,
+    logging_setup,
 ]
