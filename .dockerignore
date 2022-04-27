@@ -1,0 +1,18 @@
+# Dotfiles
+.git
+.gitignore
+.gitattributes
+.dockerignore
+# IDEs
+.vscode
+.idea
+# Python build objects
+**/*__pycache__
+**/*cache
+**/venv/
+# Local files
+**/*.sqlite3
+**/*Dockerfile
+docker-compose*.yml
+database/
+build/
