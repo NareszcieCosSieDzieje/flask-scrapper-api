@@ -42,8 +42,8 @@ ENV APP_DIR=/home/app/
 RUN mkdir $APP_DIR
 WORKDIR $APP_DIR
 
-COPY src $APP_DIR/
 # FIXME?
+COPY src $APP_DIR/
 
 # install dependencies
 COPY --from=builder /home/src/app/wheels /wheels
@@ -58,4 +58,4 @@ RUN chown -R app_user:app $APP_DIR
 USER app_user
 
 # FIXME RUN
-RUN dramatiq $APP_DIR/src.tasks
+CMD python -m dramatiq tasks

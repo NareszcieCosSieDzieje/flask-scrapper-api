@@ -42,10 +42,10 @@ ENV APP_DIR=/home/app/
 RUN mkdir $APP_DIR
 # FIXME STATICS
 # RUN mkdir -p $APP_DIR/static # FIXME: THE named_volume ownership trick doesnt work (create dir inside Dockerfile and then mount named volume as root and access as non root)
-RUN mkdir -p $APP_DIR/database
+RUN mkdir -p $APP_DIR/database # FIXME CO Z POZIOMEM CZY NIE NIZEJ NIE POWINNO BYC
 WORKDIR $APP_DIR
 
-COPY . $APP_DIR
+COPY src/ $APP_DIR
 
 # install dependencies
 COPY --from=builder /home/src/app/wheels /wheels
@@ -67,5 +67,5 @@ RUN chown -R app_user:app $APP_DIR
 
 # change to the app user
 # USER app_user # FIXME: doesnt work because of the named_volume attached in the compose file
-RUN ${APP_DIR}/gunicorn src.server.wsgi:app --bind 0.0.0.0:8000
+CMD python -m gunicorn server.wsgi:app --bind 0.0.0.0:8000
 # FIXME APP CZY SERVER?

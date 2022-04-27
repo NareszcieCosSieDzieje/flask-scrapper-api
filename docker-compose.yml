@@ -5,15 +5,15 @@ services:
   redis:
     restart: unless-stopped
     image: redis:latest
+    expose:
+      - 6379
     volumes:
       - redis_data:/data
-    expose:
-      - "6379"
-    env_file:
-      - ./env/redis.env
+    # env_file: # FIXME
+    #   - ./env/redis.env
   dramatiq_worker:
-    container_name: dramatiq_worker
     restart: unless-stopped
+    container_name: dramatiq_worker
     build:
       context: .
       dockerfile: ./dockerfiles/Worker.Dockerfile
@@ -23,31 +23,31 @@ services:
       - redis
     expose:
       - "9191"
-    command: dramatiq src.tasks  # GDZIE MAM MIEC WORKDIR W TYM DOCKERFILE'U!
+    command: python -m dramatiq src.tasks  # GDZIE MAM MIEC WORKDIR W TYM DOCKERFILE'U!
     # entrypoint: ./start-workers.sh
   server:
-    container_name: flask_backend
+    restart: unless-stopped
+    container_name: flask_server
     build:
       context: .
       dockerfile: ./dockerfiles/Server.Dockerfile
-      args:
-        environment: dev
-        status: stable
     expose:
       - 8000
     volumes:
       - dbdata:/home/app/database:rw
       - static_volume:/home/app/static:rw
-    command: gunicorn src.server.wsgi:app --bind 0.0.0.0:8000  # FIXME APP CZY SERVER?
+    command: python -m gunicorn src.server.wsgi:app --bind 0.0.0.0:8000  # FIXME APP CZY SERVER?
     # env_file:  FIXME
     #   - ./env/vm.env
     depends_on:
       - redis
       - dramatiq_worker
   nginx-proxy:
-    container_name: nginx-proxy
-    build: ./dockerfiles/nginx
     restart: unless-stopped
+    container_name: nginx-proxy
+    build:
+      context: ./dockerfiles/nginx/
+      dockerfile: ./Nginx.Dockerfile
     ports:
       - 443:443
       - 80:80
@@ -61,11 +61,11 @@ services:
     depends_on:
       - server
   nginx-proxy-letsencrypt:
-      image: jrcs/letsencrypt-nginx-proxy-companion
       restart: unless-stopped
-      container_name: nginx-letsencrypt
-      env_file:
-        - ./env/proxy.env  # FIXME
+      container_name: nginx-proxy-letsencrypt
+      image: jrcs/letsencrypt-nginx-proxy-companion
+      # env_file:
+      #   - ./env/proxy.env  # FIXME
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock:ro
         - certs:/etc/nginx/certs
@@ -76,6 +76,7 @@ services:
         - nginx-proxy
 
 volumes:
+  redis_data:
   dbdata:
   static_volume:
   certs:
