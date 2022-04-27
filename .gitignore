@@ -5,7 +5,8 @@
 # Project
 
 # contains the sqlite3 db
-database/
+database/*
+!database/.gitkeep
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
