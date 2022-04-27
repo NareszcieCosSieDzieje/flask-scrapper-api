@@ -10,3 +10,4 @@ Messing_aroung:
 - try doit package?
 - install the faker module for testing
 - try pre-commit package instead of custom scripts for hooks
+- add a grafana dashboard? (prometheus?)
