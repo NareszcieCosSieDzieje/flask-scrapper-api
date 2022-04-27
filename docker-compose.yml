@@ -1,0 +1,84 @@
+version: '3'
+
+
+services:
+  redis:
+    restart: unless-stopped
+    image: redis:latest
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+    env_file:
+      - ./env/redis.env
+  dramatiq_worker:
+    container_name: dramatiq_worker
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Worker.Dockerfile
+    # env_file:  # FIXME!
+    #   - ./env/imdb.env
+    depends_on:
+      - redis
+    expose:
+      - "9191"
+    command: dramatiq src.tasks  # GDZIE MAM MIEC WORKDIR W TYM DOCKERFILE'U!
+    # entrypoint: ./start-workers.sh
+  server:
+    container_name: flask_backend
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Server.Dockerfile
+      args:
+        environment: dev
+        status: stable
+    expose:
+      - 8000
+    volumes:
+      - dbdata:/home/app/database:rw
+      - static_volume:/home/app/static:rw
+    command: gunicorn src.server.wsgi:app --bind 0.0.0.0:8000  # FIXME APP CZY SERVER?
+    # env_file:  FIXME
+    #   - ./env/vm.env
+    depends_on:
+      - redis
+      - dramatiq_worker
+  nginx-proxy:
+    container_name: nginx-proxy
+    build: ./dockerfiles/nginx
+    restart: unless-stopped
+    ports:
+      - 443:443
+      - 80:80
+    volumes:
+      - dbdata:/home/app/database # TODO POTRZEBNE?
+      - static_volume:/home/app/static # TODO: ?
+      - certs:/etc/nginx/certs
+      - html:/usr/share/nginx/html
+      - vhost:/etc/nginx/vhost.d
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - server
+  nginx-proxy-letsencrypt:
+      image: jrcs/letsencrypt-nginx-proxy-companion
+      restart: unless-stopped
+      container_name: nginx-letsencrypt
+      env_file:
+        - ./env/proxy.env  # FIXME
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+        - certs:/etc/nginx/certs
+        - html:/usr/share/nginx/html
+        - vhost:/etc/nginx/vhost.d
+        - acme:/etc/acme.sh
+      depends_on:
+        - nginx-proxy
+
+volumes:
+  dbdata:
+  static_volume:
+  certs:
+  html:
+  vhost:
+  acme:
