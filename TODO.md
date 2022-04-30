@@ -1,6 +1,7 @@
 
 Essentials:
 - Add a docker-compose for running the app, the redis-broker and the dramatiq-workers
+- RESTRICT THE PACKAGES IN TASKS_REQUREMENTS.TXT !!
 - Finish the rest api in server
 - Finish the tests
 
@@ -11,3 +12,7 @@ Messing_aroung:
 - install the faker module for testing
 - try pre-commit package instead of custom scripts for hooks
 - add a grafana dashboard? (prometheus?)
+
+
+
+- uninstall dotenv?
