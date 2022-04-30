@@ -25,12 +25,11 @@ COPY ./$REQUIREMENTS .
 # build wheels for later re-use
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir $WHEEL_DIR -r $REQUIREMENTS
 
-# PROD
-
+# PRODUCTION
 FROM python:3.10.2-bullseye
 
 RUN apt update
-RUN apt install sqlite3 nano
+RUN apt install sqlite3 nano redis -y
 
 # Setup venv
 ENV VIRTUAL_ENV=/opt/venv
@@ -40,32 +39,27 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 ENV APP_DIR=/home/app/
 RUN mkdir $APP_DIR
-# FIXME STATICS
-# RUN mkdir -p $APP_DIR/static # FIXME: THE named_volume ownership trick doesnt work (create dir inside Dockerfile and then mount named volume as root and access as non root)
-RUN mkdir -p $APP_DIR/database # FIXME CO Z POZIOMEM CZY NIE NIZEJ NIE POWINNO BYC
-WORKDIR $APP_DIR
+RUN mkdir -p $APP_DIR/static
+RUN mkdir -p $APP_DIR/database
 
-COPY src/ $APP_DIR
+COPY src $APP_DIR/src
+ENV SRC_DIR=/home/app/src
+WORKDIR $SRC_DIR
 
 # install dependencies
 COPY --from=builder /home/src/app/wheels /wheels
 RUN pip install --no-cache /wheels/*
 
 # FIXME: COPY STATIC FILES?
-# RUN cp -r /opt/venv/lib/python3.10/site-packages/rest_framework/static/rest_framework $APP_DIR/static/
-# RUN cp -r /opt/venv/lib/python3.10/site-packages/django/contrib/gis/static $APP_DIR/static/
 # RUN cp -r /opt/venv/lib/python3.10/site-packages/django/contrib/admin/static $APP_DIR/static/
-
-# RUN python ./manage.py makemigrations && \  # FIXME REMOVE!
-#     python ./manage.py migrate
 
 RUN groupadd -r app && \
     useradd app_user -r -g app
 
-# chown all the files to the app user
+# Chown all the files to the app user
 RUN chown -R app_user:app $APP_DIR
+RUN chown -R app_user:app $VIRTUAL_ENV
 
-# change to the app user
-# USER app_user # FIXME: doesnt work because of the named_volume attached in the compose file
-CMD python -m gunicorn server.wsgi:app --bind 0.0.0.0:8000
-# FIXME APP CZY SERVER?
+# Set user
+USER app_user
+CMD python -m gunicorn wsgi:app --preload --bind 0.0.0.0:8000
