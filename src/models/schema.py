@@ -1,6 +1,5 @@
 import logging
 from peewee import (
-    Database,
     DatabaseProxy,
     Model,
     TextField,
@@ -35,7 +34,7 @@ class BaseModel(Model):
         database: DatabaseProxy = sqlite_db
 
 
-# TODO: ID FOR SITE?
+# TODO: ID FOR SITE? separate site table and foreign key
 class Smog(BaseModel):
     site = TextField(null=False)
     air_quality_index = TextField(default=None, null=True)
@@ -98,6 +97,28 @@ class Smog(BaseModel):
 
     def __repr__(self) -> str:
         return f"{vars(self)}"
+
+    @property
+    def serialize(self):
+        return {
+            'site': self.site,
+            'air_quality_index': self.air_quality_index,
+            'measurement_timestamp': self.measurement_timestamp,
+            'PM10': self.PM10,
+            'PM10_unit': self.PM10_unit,
+            'PM2_5': self.PM2_5,
+            'PM2_5_unit': self.PM2_5_unit,
+            'O3': self.O3,
+            'O3_unit': self.O3_unit,
+            'NO2': self.NO2,
+            'NO2_unit': self.NO2_unit,
+            'SO2': self.SO2,
+            'SO2_unit': self.SO2_unit,
+            'C6H6': self.C6H6,
+            'C6H6_unit': self.C6H6_unit,
+            'CO': self.CO,
+            'CO_unit': self.CO_unit,
+        }
 
     def get_air_quality_index(self) -> str | None:
         # Taken in 2022 from | "https://airindex.eea.europa.eu/Map/AQI/Viewer/#"
