@@ -5,7 +5,7 @@ from enum import Enum
 import logging
 # from collections.abc import MutableMapping
 
-logger: logging.Logger = logging.getLogger(__name__)  # TODO: MOVE LOGGER LOWER?
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class ClosestDict(dict):
@@ -97,7 +97,7 @@ class ClosestDict(dict):
 
 class AirQualityIndexDict(ClosestDict):
 
-    class AirQualityIndexScale(Enum):  # FIXME ADD A POLISH MAPPING?
+    class AirQualityIndexScale(Enum):  # TODO: Add a Polish mapping?
         EXTREMELY_POOR = 0
         VERY_POOR = 1
         POOR = 2
