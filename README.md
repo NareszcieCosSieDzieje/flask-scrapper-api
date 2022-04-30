@@ -3,12 +3,13 @@
 Work in progress...
 </h1>
 <h2>
-Done:
- - web-scrapping
- - flask smog endpoint
- - periodic task queue
- - docker-compose
- - unit tests
+
+ Done:
+  - web-scrapping
+  - flask smog endpoint
+  - periodic task queue
+  - docker-compose
+  - unit tests
 
  To Be Done:
   - integration tests
