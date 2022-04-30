@@ -25,12 +25,11 @@ COPY ./$REQUIREMENTS .
 # build wheels for later re-use
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir $WHEEL_DIR -r $REQUIREMENTS
 
-# PROD
-
+# PRODUCTION
 FROM python:3.10.2-bullseye
 
 RUN apt update
-RUN apt install sqlite3 nano
+RUN apt install sqlite3 nano redis -y
 
 # Setup venv
 ENV VIRTUAL_ENV=/opt/venv
@@ -40,10 +39,11 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 ENV APP_DIR=/home/app/
 RUN mkdir $APP_DIR
-WORKDIR $APP_DIR
+RUN mkdir -p $APP_DIR/database
 
-# FIXME?
-COPY src $APP_DIR/
+COPY src $APP_DIR/src
+ENV SRC_DIR=/home/app/src
+WORKDIR $SRC_DIR
 
 # install dependencies
 COPY --from=builder /home/src/app/wheels /wheels
@@ -52,10 +52,10 @@ RUN pip install --no-cache /wheels/*
 RUN groupadd -r app && \
     useradd app_user -r -g app
 
-# chown all the files to the app user
+# Chown all the files to the app user
 RUN chown -R app_user:app $APP_DIR
+RUN chown -R app_user:app $VIRTUAL_ENV
 
+# Set user
 USER app_user
-
-# FIXME RUN
 CMD python -m dramatiq tasks
