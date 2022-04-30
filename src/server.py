@@ -7,20 +7,18 @@ logger: logging.Logger = logging.getLogger(__name__)
 from flask import Flask, request, jsonify, Response
 from flask_apscheduler import APScheduler
 from flask_mail import Mail, Message
+from flask_cors import CORS
 from peewee import SqliteDatabase  # FIXME?
-from pathlib import Path
 from typing import Any
-import dramatiq
 
-from scrapping.scrapper import SmogScrapper, GovScrapper, SmogMapScrapper
 from models.schema import (
     sqlite_db,
     Email,
     Smog,
-    smog_factory
 )
 from config import (
     FlaskConfig,
+    DatabaseConfig,
     # FIXME!
 )
 from routes import (
@@ -30,21 +28,14 @@ from routes import (
 )
 import tasks
 
-# FIXME WYNIKI!
-# redis_broker = RedisBroker(host="redis")
-# results_backend = RedisBackend(host="redis")
-# redis_broker.add_middleware(Results(backend=results_backend))
-# dramatiq.set_broker(redis_broker)
-
-# redis_broker: RedisBroker = RedisBroker(host="redis")  # FIXME ADD!
-# dramatiq.set_broker(redis_broker)
-
 app: Flask = Flask(__name__)
 app.config.from_object(FlaskConfig())
 
-app.register_blueprint(email_api, url_prefix='/emails')  # FIXME IS THE PREFIX NECESSARY?
-app.register_blueprint(smog_api, url_prefix='/smog')
-app.register_blueprint(open_api, url_prefix='/')
+cors: CORS = CORS(app)
+
+app.register_blueprint(email_api)  # TODO: ? optional # url_prefix='/emails'
+app.register_blueprint(smog_api)
+app.register_blueprint(open_api)
 
 
 mail: Mail = Mail(app)
@@ -52,43 +43,35 @@ scheduler: APScheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-smog_db_path: Path = Path(__file__).parent.parent / "database" / "smog.db"
-# database: SqliteDatabase = SqliteDatabase(smog_db_path.as_uri())  # FIXME
-# , pragmas={
-    # 'journal_mode': 'wal',
-    # 'cache_size': -1024 * 64})
+smog_db_path: str = DatabaseConfig.DB_PATH
 
 # Configure our proxy to use the db we specified in the config.
 database: SqliteDatabase | None = None
 if app.config['DEBUG']:
     database = SqliteDatabase(':memory:')
 else:
-    database = SqliteDatabase(str(smog_db_path))
+    database = SqliteDatabase(smog_db_path)
 sqlite_db.initialize(database)
 database.create_tables([Email, Smog])
 
-# Email.insert_many(["elo@gmail.com", "blabla@wp.pl"])  # FIXME
+
+@scheduler.task('cron', id='Periodically perform web-scrapping and save SMOG data', hour="6-8,18-20")
+def schedule_scrapping():
+    _ = tasks.do_smog_scrapping.send()
+
+# FIXME REMOVE THIS!
+@app.route('/reload_data', methods=['GET'])
+def reload_data():
+    from datetime import datetime
+    for job in scheduler.get_jobs():
+        job.modify(next_run_time=datetime.now())
+    return Response("{}", status=200, mimetype='application/json')
 
 
-@scheduler.task('cron', id='Periodically perform web-scrapping to get SMOG data', hour="6-8,18-20") # TODO: PARAMETRIZE  # FIXME UNCOMMENT
-# @scheduler.task('cron', id='Periodically perform web-scrapping to get SMOG data', second="*") # TODO: PARAMETRIZE
-def schedule_scrapping(): # todo: make async?
-    msg = tasks.do_smog_scrapping.send()  # FIXME RET VALUE?
-    try:
-        result = msg.get_result(block=False)
-    except dramatiq.results.errors.ResultMissing:
-        print("Result is not ready yet...")
-        result = msg.get_result(block=True)
-        print(f"Result is {result}")
-
+# TODO: Chain a trigger event after scrapping,
+# If levels are CRITICAL notify the users by email
 # def send_mail(destination: str):
-#     # CREATE AN ACCOUNT? CZY KOLEJKCA ACCOUNTS
-#     msg = Message('Hello from the other side!', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
-#     msg.body = "Hey Paul, sending you this email from my Flask app, lmk if it works"
-#     mail.send(msg)
-    # GET UPDATES!
-    # TODO: IF LEVELS ARE CRITICAL SEND EMAIL
-
+#   pass
 
 def main() -> None:
     app.run(debug=True)
@@ -96,12 +79,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     import sys
-    assert sys.version_info >= (3, 10), "The script requires Python 3.10+."  # FIXME REMOVE THIS?
-    # print(database.get_tables())
-    # import time
-    # time.sleep(4)
+    assert sys.version_info >= (3, 10), "The script requires Python 3.10+."
     main()
-
-# run cyclically
-# send email if levels are a real piece of shite
-# get statistics
