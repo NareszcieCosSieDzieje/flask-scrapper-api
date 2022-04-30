@@ -3,7 +3,7 @@ import bs4
 import re
 from bs4 import BeautifulSoup
 from abc import ABC
-from functools import wraps # FIXME , cache
+from functools import wraps
 from cachetools import cached, TTLCache
 import logging
 import logging
@@ -31,7 +31,7 @@ if not __package__:
 from models.schema import Smog, smog_factory
 
 
-class Site(Enum):  # FIXME CZY WOGOLE UZYWAC use this??
+class Site(Enum):  # FIXME Is this of any use?
     POLANKA=0
     DABROWSKIEGO=1
     RATAJE=2
@@ -53,7 +53,6 @@ class SmogScrapper(ABC):
         try:
             requests.get(url=url)
         except Exception as e:
-        # except requests.exceptions.InvalidURL as e:
             error_message: str = f"The given URL is invalid ({url})\n\t{e}"
             logger.error(error_message)
             return False
@@ -65,7 +64,6 @@ class SmogScrapper(ABC):
             try:
                 return requests.get(url).content.decode()
             except Exception as e:
-            # except requests.exceptions.RequestException as e:
                 error_message = f"Failed to perform a GET request on: ({url})\n\t{e}"
                 logger.error(error_message)
                 return ""
