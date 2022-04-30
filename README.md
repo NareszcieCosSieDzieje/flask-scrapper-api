@@ -21,8 +21,9 @@ Work in progress...
 <h3>
 This application is a Flask backend that periodically performs web-scrapping of
 data from smog-stations in Poznan.
-    - https://powietrze.gios.gov.pl/pjp/
-    - https://smogmap.pl/poznan/
+
+  - https://powietrze.gios.gov.pl/pjp/
+  - https://smogmap.pl/poznan/
 
 It provides REST endpoints to query the data.
 
@@ -35,6 +36,7 @@ To be added: A REST ENDPOINT TO Post emails as to get notifications in case of c
 
 <h2> Stack </h2>
 <h3>
+
  - Python3.10
     - Flask/Gunicorn (wsgi server)
     - Dramatiq (an asynchronous task queue)
@@ -43,4 +45,5 @@ To be added: A REST ENDPOINT TO Post emails as to get notifications in case of c
  - Redis (Message Broker for Dramatiq)
  - Docker/Docker-Compose (virtualizaition)
  - Nginx with letsencrypt (reverse-proxy HTTPS)
+
 </h3>
