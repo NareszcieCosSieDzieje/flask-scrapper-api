@@ -2,10 +2,12 @@ import yaml
 import logging
 import logging.config
 from pathlib import Path
+from functools import wraps
 from typing import Callable, Any
 
 
 def make_singleton(func: Callable) -> Callable:
+    @wraps(func)
     def wrapper(*args, **kwargs) -> Any:
         if not hasattr(func, '__singleton__'):
             setattr(func, '__singleton__', True)
