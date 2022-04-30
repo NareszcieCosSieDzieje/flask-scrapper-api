@@ -1,16 +1,24 @@
 import os
 import logging
-
-
+from pathlib import Path
 class FlaskConfig:
     SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", os.urandom(32))
     SCHEDULER_API_ENABLED = True
-    DEBUG = True
-    LOGGING_LEVEL = logging.ERROR
+    DEBUG = bool(int(os.environ.get("DEBUG", 0)))  # FIXME: what if not int
+    FLASK_ENV = os.environ.get("FLASK_ENV", "development")
+    # TESTING = os.environ.get("TESTING", "development")
+    # if FLASK_ENV == "development":
+    #     TESTING = True
+    # LOGGING_LEVEL = logging.ERROR
 
+
+class CorsConfig:
+    # TODO:
+    # https://flask-cors.readthedocs.io/en/latest/configuration.html
+    CORS_ALLOW_HEADERS = "*"
 
 class FlaskProdConfig(FlaskConfig):
-    FLASK_ENV = 'production'
+    FLASK_ENV = "production"
     DEBUG = False
     TESTING = False
     LOGGING_LEVEL = logging.INFO
@@ -24,11 +32,14 @@ class FlaskDevConfig(FlaskConfig):
 
 
 class RedisConfig:
-    REDIS_URL = os.environ.get('REDIS_URL', 'redis://')
-    DEBUG = False
-    TESTING = False
-    LOGGING_LEVEL = logging.INFO
+    REDIS_PORT = os.environ.get('REDIS_PORT', "6379")
+    REDIS_HOST = os.environ.get('REDIS_HOST', "redis")
+    DB_NUM = os.environ.get('DB_NUM', "0")
+    REDIS_URL = os.environ.get('REDIS_URL', f"redis://{REDIS_HOST}:{REDIS_PORT}/{DB_NUM}")
 
+
+class DatabaseConfig:
+    DB_PATH: str = str(Path(__file__).parent.parent / "database" / "smog.db")
 
 # app.config.update(
 #     TESTING=True,
