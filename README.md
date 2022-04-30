@@ -1,6 +1,8 @@
 
 <h1>
 Work in progress...
+</h1>
+<h2>
 Done:
  - web-scrapping
  - flask smog endpoint
@@ -13,7 +15,7 @@ Done:
   - fix mypy typing
   - email endpoints
   - make an alternative git branch that uses kubernetes
-</h1>
+</h2>
 
 <h3>
 This application is a Flask backend that periodically performs web-scrapping of
