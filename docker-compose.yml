@@ -23,7 +23,9 @@ services:
       - redis
     expose:
       - "9191"
-    command: python -m dramatiq src.tasks  # GDZIE MAM MIEC WORKDIR W TYM DOCKERFILE'U!
+    volumes:
+      - dbdata:/home/app/database:rw
+    command: python -m dramatiq tasks
     # entrypoint: ./start-workers.sh
   server:
     restart: unless-stopped
@@ -33,53 +35,19 @@ services:
       dockerfile: ./dockerfiles/Server.Dockerfile
     expose:
       - 8000
+    ports:
+      - 8000:8000
     volumes:
       - dbdata:/home/app/database:rw
       - static_volume:/home/app/static:rw
-    command: python -m gunicorn src.server.wsgi:app --bind 0.0.0.0:8000  # FIXME APP CZY SERVER?
+    command: python -m gunicorn wsgi:app --preload --bind 0.0.0.0:8000
     # env_file:  FIXME
     #   - ./env/vm.env
     depends_on:
       - redis
       - dramatiq_worker
-  nginx-proxy:
-    restart: unless-stopped
-    container_name: nginx-proxy
-    build:
-      context: ./dockerfiles/nginx/
-      dockerfile: ./Nginx.Dockerfile
-    ports:
-      - 443:443
-      - 80:80
-    volumes:
-      - dbdata:/home/app/database # TODO POTRZEBNE?
-      - static_volume:/home/app/static # TODO: ?
-      - certs:/etc/nginx/certs
-      - html:/usr/share/nginx/html
-      - vhost:/etc/nginx/vhost.d
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    depends_on:
-      - server
-  nginx-proxy-letsencrypt:
-      restart: unless-stopped
-      container_name: nginx-proxy-letsencrypt
-      image: jrcs/letsencrypt-nginx-proxy-companion
-      # env_file:
-      #   - ./env/proxy.env  # FIXME
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock:ro
-        - certs:/etc/nginx/certs
-        - html:/usr/share/nginx/html
-        - vhost:/etc/nginx/vhost.d
-        - acme:/etc/acme.sh
-      depends_on:
-        - nginx-proxy
 
 volumes:
   redis_data:
   dbdata:
   static_volume:
-  certs:
-  html:
-  vhost:
-  acme:
