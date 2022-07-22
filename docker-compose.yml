@@ -25,7 +25,8 @@ services:
       - "9191"
     volumes:
       - dbdata:/home/app/database:rw
-    command: python -m dramatiq tasks
+    command: tail -f /dev/null #python -m dramatiq tasks
+    # command: python -m dramatiq tasks:redis
     # entrypoint: ./start-workers.sh
   server:
     restart: unless-stopped
