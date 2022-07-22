@@ -64,6 +64,7 @@ def schedule_scrapping():
 def reload_data():
     from datetime import datetime
     for job in scheduler.get_jobs():
+        logger.info(f"Running a job: {job}")
         job.modify(next_run_time=datetime.now())
     return Response("{}", status=200, mimetype='application/json')
 
