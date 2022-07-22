@@ -1,0 +1,49 @@
+name: Perform testing using Pytest
+on: [push]
+
+env:
+  python-version: '3.10'
+  venv_name: venv-310
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up venv
+        run: |
+          sudo apt update && sudo apt upgrade -y
+          sudo apt install software-properties-common -y
+          sudo apt install "python${{ env.python-version }}-venv"
+          python${{ env.python-version }} -m pip install --upgrade pip
+          python${{ env.python-version }} -m venv ./"${{ env.venv-310 }}"
+          source ./"${{ env.venv-310 }}/bin/activate"
+          python -m pip install -r requirements.txt
+        # sudo add-apt-repository ppa:deadsnakes/ppa
+        # wget https://bootstrap.pypa.io/get-pip.py -P ~/tmp
+        # sudo python${{ env.python-version }} ~/tmp/get-pip.py "pip" "setuptools" "wheel"
+      # - name: Debug | Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   with:
+      #     limit-access-to-actor: true
+      - name: Cache venv
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-venv
+        with:
+          path: ./${{ env.venv_name }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: run pytest
+        run: |
+          source ./"${{ env.venv_name }}/bin/activate"
+          python -m pytest
