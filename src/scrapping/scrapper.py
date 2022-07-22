@@ -18,8 +18,8 @@ try:
 except ImportError as ie:
     # relative import if run from other package with the same level in the hierarchy
     logger.warning(
-        "Could perform an import of a module inside "
-        f"a package, using a relative import.{ie}"
+        f"Could perform an import of a module inside a package ({ie}), "
+        "using a relative import."
     )
     from .utils import to_float
 
