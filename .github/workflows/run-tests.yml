@@ -8,28 +8,42 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    outputs:
+        requirements_changed: ${{ steps.requirements-step.outputs.requirements_changed }}
     steps:
-      #
-      - uses: actions/checkout@v3
-      # - if: ${{ steps.cache-venv.outputs.cache-hit == 'false' }} # fixme hardcode | also do diff on requirements hash and if new build
-      - name: Set up venv
-        run: |
-          sudo apt update && sudo apt upgrade -y
-          sudo apt install software-properties-common -y
-          sudo apt install "python${{ env.python-version }}-venv"
-          python${{ env.python-version }} -m pip install --upgrade pip
-          python${{ env.python-version }} -m venv ./"${{ env.venv-name }}"
-          source ./"${{ env.venv-name }}/bin/activate"
-          python -m pip install -r requirements.txt
+      # - name: Dump GitHub context
+      # env:
+      #   GITHUB_CONTEXT: ${{ toJson(github) }}
+      # run: echo "$GITHUB_CONTEXT"
       # - name: Debug | Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
       #   with:
       #     limit-access-to-actor: true
-      - name: Debug | Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      - uses: actions/checkout@v3
         with:
-          limit-access-to-actor: true
+          fetch-depth: 2 # TODO: what depth to add?
+      - name: Detect requirements.txt changes
+        id: requirements-step
+        run: |
+          changed=0;
+          if [[ ! $(git log ${{ github.event.before }} 2>&1 >/dev/null ) ]];
+          then
+            if [[ $(git diff HEAD..${{ github.event.before }} requirements.txt) ]];
+            then
+              changed=1;
+            else
+              changed=0;
+            fi;
+          fi;
+
+          if [[ ${changed} -eq 1 ]];
+          then
+            echo "::set-output name=requirements_changed::true"
+          else
+            echo "::set-output name=requirements_changed::false"
+          fi;
       - name: Cache venv
+        id: cache-venv
         uses: actions/cache@v3
         env:
           cache-name: cache-venv
@@ -40,12 +54,33 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+      # - name: Test echos
+      #   run: |
+      #     echo "requirements-changed = ${{ steps.requirements-step.outputs.requirements_changed }}"
+      #     echo "cache-hit = ${{ steps.cache-venv.outputs.cache-hit }}"
+      #     echo "or ${{ (steps.requirements-step.outputs.requirements_changed == 'true') || (steps.cache-venv.outputs.cache-hit == 'false') }}"
+      - if: ${{ (steps.requirements-step.outputs.requirements_changed == 'true') || (steps.cache-venv.outputs.cache-hit == 'false') }}
+        name: Set up venv
+        run: |
+          sudo apt update && sudo apt upgrade -y
+          sudo apt install software-properties-common -y
+          sudo apt install "python${{ env.python-version }}-venv"
+          python${{ env.python-version }} -m pip install --upgrade pip
+          python${{ env.python-version }} -m venv ./"${{ env.venv-name }}"
+          source ./"${{ env.venv-name }}/bin/activate"
+          python${{ env.python-version }} -m pip install -r requirements.txt
 
   test:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+      - name: setup python
+        run: |
+          sudo apt update && sudo apt upgrade -y
+          sudo apt install software-properties-common -y
+          sudo apt install "python${{ env.python-version }}-venv"
+          python${{ env.python-version }} -m pip install --upgrade pip
       - uses: actions/cache@v3
         with:
           path: /home/runner/work/flask-scrapper-api/flask-scrapper-api/${{ env.venv-name }}
