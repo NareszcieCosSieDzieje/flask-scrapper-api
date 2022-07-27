@@ -1,4 +1,4 @@
-name: Perform testing using Pytest
+name: Perform testing using Pytest and type checking using MyPy
 on: [push]
 
 env:
@@ -93,3 +93,25 @@ jobs:
           python${{ env.python-version }} -m pip install --upgrade pip
           source ./"${{ env.venv-name }}/bin/activate"
           python -m pytest
+
+  type-check:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup python
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: software-properties-common "python${{ env.python-version }}-venv"
+          version: 1.0
+      - uses: actions/cache@v3
+        with:
+          path: /home/runner/work/flask-scrapper-api/flask-scrapper-api/${{ env.venv-name }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-
+        env:
+          cache-name: cache-venv
+      - name: run pytest
+        run: |
+          python${{ env.python-version }} -m pip install --upgrade pip
+          source ./"${{ env.venv-name }}/bin/activate"
+          python -m mypy
