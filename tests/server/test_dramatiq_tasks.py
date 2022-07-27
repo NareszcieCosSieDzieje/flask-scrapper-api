@@ -7,7 +7,10 @@ from dramatiq import Worker
 
 from src.server import schedule_scrapping  # FIXME?
 
-# raise NotImplementedError()
+@pytest.mark.xfail("Not implemented")
+def test_todo():
+    pass
+
 
 # if os.getenv("UNIT_TESTS") == "1":
 #     broker = StubBroker()

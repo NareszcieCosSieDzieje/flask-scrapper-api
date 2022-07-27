@@ -1,7 +1,10 @@
 import pytest
 from pytest_mock import MockerFixture
 
-raise NotImplementedError()
+@pytest.mark.xfail("Not implemented")
+def test_todo():
+    pass
+
 
 # FIXME ADD GLOBAL TESTS FOR PARSE_URLS TO SEE IF THE LIST IS FLAT!
 
