@@ -7,7 +7,7 @@ from dramatiq import Worker
 
 from src.server import schedule_scrapping  # FIXME?
 
-@pytest.mark.xfail("Not implemented")
+@pytest.mark.xfail(reason="Not implemented")
 def test_todo():
     pass
 

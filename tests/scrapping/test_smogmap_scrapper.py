@@ -1,7 +1,7 @@
 import pytest
 from pytest_mock import MockerFixture
 
-@pytest.mark.xfail("Not implemented")
+@pytest.mark.xfail(reason="Not implemented")
 def test_todo():
     pass
 
