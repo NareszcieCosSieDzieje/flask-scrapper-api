@@ -74,13 +74,13 @@ class SmogScrapper(ABC):
 
     def parse_urls(self) -> list[Smog]:
         smog_list: list[Smog] = []
-        parse_methods: list[Callable[[], Smog]] = [
+        parse_methods: list[str] = [
             x for x in dir(self) if 'parse' in x
         ]
         for method_name in parse_methods:
             if method_name == 'parse_urls' or method_name.startswith('_'):
                 continue
-            parse_method = getattr(self, method_name)
+            parse_method: Callable[[], Smog] = getattr(self, method_name)
             scrapper_result: Smog = parse_method()
             smog_list.append(scrapper_result)
         return smog_list
@@ -143,7 +143,7 @@ class GovScrapper(SmogScrapper):
                         measurement_units[f"{parameter}_unit"] = unit
 
             measurement_timestamp: str = ""
-            latest_measurement: list[str] = []
+            latest_measurement: list[str | float] = []
             not_found_indexes: set[int] = set([])
             datetime_re: re.Pattern = re.compile(
                 r"(?P<Day>\d{2})\.(?P<Month>\d{2})\.(?P<Year>\d{4}),\s+(?P<Time>\d+:\d+)"
@@ -158,7 +158,7 @@ class GovScrapper(SmogScrapper):
                 current_measurement = [
                     m for i, m in enumerate(current_measurement) if i in parameter_columns.values()
                 ]
-                current_measurement: list[float | str] = [
+                current_measurement: list[float] = [
                     to_float(m) for m in current_measurement
                 ]
 
@@ -193,7 +193,6 @@ class GovScrapper(SmogScrapper):
             parameter: latest_measurement[column_idx]
             for parameter, column_idx in parameter_columns.items()
         }
-
         return smog_factory(
             site=district_name,
             **measurements,
@@ -378,7 +377,7 @@ class SmogMapScrapper(SmogScrapper):
         return site_urls
 
     @cached(cache=TTLCache(maxsize=100, ttl=60 * 60))
-    def _get_site_url_and_district_name(self, site: str) -> str:
+    def _get_site_url_and_district_name(self, site: str) -> tuple[str, str]:
         site_urls: dict[str, str] = self._get_site_urls()
         site = site.lower()
         for site_name, site_url in site_urls.items():

@@ -38,12 +38,13 @@ class ClosestDict(dict):
         wraps(func)
 
         def wrapper(self, key: int | float | None, value: Any | None = None) -> Any:
+            error_msg: str = ""
             if type(key) not in (int, float):
-                error_msg: str = "Dictionary accepts integer and float keys only."
+                error_msg = "Dictionary accepts integer and float keys only."
                 logger.error(error_msg)
                 raise ValueError(error_msg)
             elif key < self.lower_bound:
-                error_msg: str = (
+                error_msg = (
                     f"Given key: ({key}) is less than the lower bound: ({self.lower_bound})"
                 )
                 logger.error(error_msg)

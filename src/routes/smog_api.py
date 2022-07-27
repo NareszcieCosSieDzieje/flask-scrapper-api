@@ -17,7 +17,7 @@ def query_smog(id: int | None = None):
     per_page: int | None = args.get("per_page", default=5, type=int)
     latest_data: bool | None = args.get("latest", default=False, type=bool)
 
-    result: None | list[dict] | dict = None
+    result: None | list[Smog] | dict = None
     if id:
         if (
             (smog_select := Smog.select().where(Smog.id == id))
