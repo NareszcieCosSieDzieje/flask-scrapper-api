@@ -72,7 +72,7 @@ jobs:
           source ./"${{ env.venv-name }}/bin/activate"
           python${{ env.python-version }} -m pip install -r requirements.txt
 
-  test:
+  pytest:
     needs: build
     runs-on: ubuntu-22.04
     steps:
@@ -94,7 +94,7 @@ jobs:
           source ./"${{ env.venv-name }}/bin/activate"
           python -m pytest
 
-  type-check:
+  mypy:
     needs: build
     runs-on: ubuntu-22.04
     steps:
@@ -110,7 +110,7 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-
         env:
           cache-name: cache-venv
-      - name: run pytest
+      - name: run mypy
         run: |
           python${{ env.python-version }} -m pip install --upgrade pip
           source ./"${{ env.venv-name }}/bin/activate"
