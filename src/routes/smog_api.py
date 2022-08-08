@@ -25,12 +25,12 @@ def query_smog(id: int | None = None):
             len(smog_select) == 1
         ):
             smog: Smog = next(iter(smog_select))
-            result: dict = smog._data__
+            result = smog._data__ # dict
         else:
             return Response("{}", status=404, mimetype='application/json')
     else:
         if latest_data:
-            result: list[Smog] = [
+            result = [
                 smog.__data__ for smog in Smog.select().order_by(
                     (
                         Smog
@@ -41,13 +41,13 @@ def query_smog(id: int | None = None):
                         )
                     )
                 )
-            ]
+            ] # list[Smog]
         elif page:
             per_page = per_page or 5
             # result: list[Smog] = [smog.serialize() for smog in Smog.select().paginate(page, per_page)]
-            result: list[Smog] = [smog.__data__ for smog in Smog.select().paginate(page, per_page)]
+            result = [smog.__data__ for smog in Smog.select().paginate(page, per_page)] # list[Smog]
         else:
-            result: list[Smog] = [smog.__data__ for smog in Smog.select()]
+            result = [smog.__data__ for smog in Smog.select()] # list[Smog]
             # result: list[Smog] = [smog.serialize() for smog in Smog.select()]
 
     status: int = 200

@@ -227,8 +227,10 @@ class Smog(BaseModel):
         air_quality_index: AirQualityIndexDict.AirQualityIndexScale = \
             AirQualityIndexDict.get_air_quality_index(*air_quality_descriptions)
 
+        air_quality_index_result: str | None = None
         if air_quality_index:
-            return air_quality_index.name.replace('_', ' ')  # TODO: lowercase?
+            air_quality_index_result = air_quality_index.name.replace('_', ' ')  # TODO: lowercase?
+        return air_quality_index_result
 
     def set_air_quality_index(self) -> None:
         self.air_quality_index = self.get_air_quality_index()

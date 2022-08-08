@@ -25,11 +25,11 @@ def setup_logging(
     if default_path.is_file():
         with default_path.open('rt') as logging_config_file:
             try:
-                logging_config_str: str = yaml.safe_load(
+                logging_config_dict: dict[str, Any] = yaml.safe_load(
                     logging_config_file.read()
                 )
                 logging.config.dictConfig(
-                    logging_config_str
+                    logging_config_dict
                 )
                 use_default = False
             except Exception as e:

@@ -8,7 +8,7 @@ from cachetools import cached, TTLCache
 import logging
 import logging
 from frozendict import frozendict
-from typing import Callable
+from typing import Callable, Any
 from enum import Enum
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -38,6 +38,8 @@ class Site(Enum):  # FIXME Is this of any use?
 
 
 class SmogScrapper(ABC):
+
+    __name__: str
 
     _parameter_re_patterns: frozendict[str, re.Pattern] = frozendict({
         'PM10': re.compile(r"pm10", re.IGNORECASE),
@@ -124,10 +126,9 @@ class GovScrapper(SmogScrapper):
             table_rows: dict[int, bs4.element.Tag] = \
                 dict(enumerate(data_table.find_all("tr")))  # FIXME TYP
 
-            contamination_metrics_rows: list[tuple[str, str]] = zip(
+            contamination_metrics_rows: zip[Any] = zip(
                 *([th.text for th in table_rows[i].find_all("th")[1:]] for i in range(2))
             )
-
             parameter_re_patterns = self._parameter_re_patterns
 
             parameter_columns: dict[str, int] = {
@@ -135,7 +136,6 @@ class GovScrapper(SmogScrapper):
             }
 
             measurement_units: dict[str, str] = {}
-
             for idx, (metric, unit) in enumerate(contamination_metrics_rows):
                 for parameter, parameter_re in parameter_re_patterns.items():
                     if parameter_re.match(metric):
@@ -150,7 +150,7 @@ class GovScrapper(SmogScrapper):
             )
 
             for _, latest_data_row in list(reversed(table_rows.items()))[3:][:-2]:
-                current_measurement: list[str] = [
+                current_measurement: list[str | float] = [
                     td.text.strip() for td in latest_data_row.find_all("td")
                 ]
                 if all(map(lambda x: x == '', current_measurement)):
@@ -158,7 +158,7 @@ class GovScrapper(SmogScrapper):
                 current_measurement = [
                     m for i, m in enumerate(current_measurement) if i in parameter_columns.values()
                 ]
-                current_measurement: list[float] = [
+                current_measurement = [
                     to_float(m) for m in current_measurement
                 ]
 
@@ -189,7 +189,7 @@ class GovScrapper(SmogScrapper):
                 if all(map(lambda x: x != "", latest_measurement)):
                     break
 
-        measurements: dict[str, float] = {}
+        measurements: dict[str, str | float] = {}
         if latest_measurement:
             measurements = {
                 parameter: latest_measurement[column_idx]
@@ -408,7 +408,7 @@ class SmogMapScrapper(SmogScrapper):
 
 def main() -> None:
     from pprint import pprint
-    scrappers = (GovScrapper(), SmogMapScrapper(), )
+    scrappers: tuple[SmogScrapper, ...] = (GovScrapper(), SmogMapScrapper(), )
     for scrapper in scrappers:
         parsed_smog_list: list[Smog] = scrapper.parse_urls()
         print(f"{scrapper.__name__} parsed:")
