@@ -5,8 +5,7 @@ from jinja2 import FileSystemLoader, Environment, Template
 import os
 
 # from src.logging_setup.init_logging import setup_logging  # FIXME
-from src.scrapping.scrapper import GovScrapper
-from src.models.schema import Smog
+from src.scrapping.scrapper import GovScrapper, Smog, smog_factory
 
 # setup_logging()  # FIXME
 
