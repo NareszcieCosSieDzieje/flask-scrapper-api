@@ -62,10 +62,9 @@ class TestGovScrapper:
             'measurement_timestamp': f"{year}-0{month}-0{day} {hour}:00",
         }
 
-    @pytest.fixture(scope="class")  # FIXME function
+    @pytest.fixture(scope="class")
     def polanka_smog(self, smog_data: dict[str, str | float]) -> Smog:
-        return Smog(
-            air_quality_index="FAIR",  # TODO: IT COULD IF C6H6 tresholds are added to aqindex
+        return smog_factory(
             site="Poznań , ul. Polanka",
             **smog_data,
         )
