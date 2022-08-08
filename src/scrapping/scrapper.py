@@ -189,10 +189,12 @@ class GovScrapper(SmogScrapper):
                 if all(map(lambda x: x != "", latest_measurement)):
                     break
 
-        measurements: dict[str, float] = {
-            parameter: latest_measurement[column_idx]
-            for parameter, column_idx in parameter_columns.items()
-        }
+        measurements: dict[str, float] = {}
+        if latest_measurement:
+            measurements = {
+                parameter: latest_measurement[column_idx]
+                for parameter, column_idx in parameter_columns.items()
+            }
         return smog_factory(
             site=district_name,
             **measurements,
