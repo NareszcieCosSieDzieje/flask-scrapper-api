@@ -77,7 +77,7 @@ class TestGovScrapper:
             **smog_data,
         )
 
-    @pytest.fixture(scope="class")  # FIXME function
+    @pytest.fixture(scope="class")
     def template_variables(
         self,
         smog_data: dict[str, str | float],
