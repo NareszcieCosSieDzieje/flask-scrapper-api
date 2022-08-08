@@ -71,6 +71,18 @@ jobs:
           python${{ env.python-version }} -m venv ./"${{ env.venv-name }}"
           source ./"${{ env.venv-name }}/bin/activate"
           python${{ env.python-version }} -m pip install -r requirements.txt
+      - name: Cache venv
+        id: cache-venv
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-venv
+        with:
+          path: /home/runner/work/flask-scrapper-api/flask-scrapper-api/${{ env.venv-name }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
   pytest:
     needs: build
