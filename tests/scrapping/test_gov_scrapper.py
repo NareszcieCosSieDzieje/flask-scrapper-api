@@ -43,6 +43,14 @@ class TestGovScrapper:
         }
 
     @pytest.fixture(scope="class")
+    def smog_data_empty(
+        self,
+    ) -> dict[str, str]:
+        return {
+            'measurement_timestamp': ''
+        }
+
+    @pytest.fixture(scope="class")
     def smog_data(
         self,
         timestamp_parameters: dict[str, int]
@@ -63,16 +71,38 @@ class TestGovScrapper:
         }
 
     @pytest.fixture(scope="class")
+    def polanka_smog_empty(
+        self,
+        smog_data_empty: dict[str, str | float]
+    ) -> Smog:
+        return smog_factory(
+            site="Poznań , ul. Polanka",
+            **smog_data_empty,
+        )
+
+    @pytest.fixture(scope="class")
     def polanka_smog(self, smog_data: dict[str, str | float]) -> Smog:
         return smog_factory(
             site="Poznań , ul. Polanka",
             **smog_data,
         )
 
-    @pytest.fixture(scope="class")  # FIXME function
-    def dabrowskiego_smog(self, smog_data: dict[str, str | float]) -> Smog:
-        return Smog(
-            air_quality_index="FAIR",  # TODO: IT COULD IF C6H6 tresholds are added to aqindex
+    @pytest.fixture(scope="class")
+    def dabrowskiego_smog_empty(
+        self,
+        smog_data_empty: dict[str, str | float]
+    ) -> Smog:
+        return smog_factory(
+            site="Poznań , ul. Dąbrowskiego 169",
+            **smog_data_empty,
+        )
+
+    @pytest.fixture(scope="class")
+    def dabrowskiego_smog(
+        self,
+        smog_data: dict[str, str | float]
+    ) -> Smog:
+        return smog_factory(
             site="Poznań , ul. Dąbrowskiego 169",
             **smog_data,
         )
@@ -154,6 +184,22 @@ class TestGovScrapper:
         }
 
     @pytest.fixture(scope="class")
+    def dabrowskiego_html_empty(
+        self,
+        dabrowskiego_template: Template
+    ) -> str:
+
+        template_variables: dict[str, str] = {
+            'site': (
+                "Dane pomiarowe 			Poznań"
+                "			, ul. Dąbrowskiego 169"
+                " , tabele - GIOŚ"
+            ),
+        }
+
+        return dabrowskiego_template.render(**template_variables)
+
+    @pytest.fixture(scope="class")
     def dabrowskiego_html(
         self,
         template_variables: dict[str, str | list[dict[str, str]]],
@@ -171,6 +217,22 @@ class TestGovScrapper:
         )
 
         return dabrowskiego_template.render(**template_variables)
+
+    @pytest.fixture(scope="class")
+    def polanka_html_empty(
+        self,
+        polanka_template: Template
+    ) -> str:
+
+        template_variables: dict[str, str] = {
+            'site': (
+                "Dane pomiarowe 			Poznań"
+                "			, ul. Polanka"
+                " , tabele - GIOŚ"
+            ),
+        }
+
+        return polanka_template.render(**template_variables)
 
     @pytest.fixture(scope="class")
     def polanka_html(
@@ -191,6 +253,25 @@ class TestGovScrapper:
 
         return polanka_template.render(**template_variables)
 
+    def test_parse_dabrowskiego_url_empty(
+        self,
+        mocker: MockerFixture,
+        dabrowskiego_smog_empty: Smog,
+        dabrowskiego_html_empty: str
+    ) -> None:
+
+        gov_scrapper: GovScrapper = GovScrapper()
+        mocker.patch.object(
+            gov_scrapper,
+            'get_html',
+            return_value=dabrowskiego_html_empty
+        )
+        dabrowskiego_smog_parsed: Smog = gov_scrapper.parse_dabrowskiego_url()
+
+        assert (
+            dabrowskiego_smog_parsed == dabrowskiego_smog_empty
+        )
+
     def test_parse_dabrowskiego_url(
         self,
         mocker: MockerFixture,
@@ -208,6 +289,25 @@ class TestGovScrapper:
 
         assert (
             dabrowskiego_smog_parsed == dabrowskiego_smog
+        )
+
+    def test_parse_polanka_url_empty(
+        self,
+        mocker: MockerFixture,
+        polanka_smog_empty: Smog,
+        polanka_html_empty: str
+    ) -> None:
+
+        gov_scrapper: GovScrapper = GovScrapper()
+        mocker.patch.object(
+            gov_scrapper,
+            'get_html',
+            return_value=polanka_html_empty
+        )
+        polanka_smog_parsed: Smog = gov_scrapper.parse_polanka_url()
+
+        assert (
+            polanka_smog_parsed == polanka_smog_empty
         )
 
     def test_parse_polanka_url(

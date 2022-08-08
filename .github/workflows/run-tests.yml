@@ -54,17 +54,17 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-      # - name: Test echos
-      #   run: |
-      #     echo "requirements-changed = ${{ steps.requirements-step.outputs.requirements_changed }}"
-      #     echo "cache-hit = ${{ steps.cache-venv.outputs.cache-hit }}"
-      #     echo "or ${{ (steps.requirements-step.outputs.requirements_changed == 'true') || (steps.cache-venv.outputs.cache-hit == 'false') }}"
+      - name: Test echos
+        run: |
+          echo "requirements-changed = ${{ steps.requirements-step.outputs.requirements_changed }}"
+          echo "cache-hit = ${{ steps.cache-venv.outputs.cache-hit }}"
+          echo "or ${{ (steps.requirements-step.outputs.requirements_changed == 'true') || (steps.cache-venv.outputs.cache-hit == 'false') || steps.cache-venv.outputs.cache-hit == '' }}"
       - name: Set up python
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
           packages: software-properties-common "python${{ env.python-version }}-venv"
           version: 1.0
-      - if: ${{ (steps.requirements-step.outputs.requirements_changed == 'true') || (steps.cache-venv.outputs.cache-hit == 'false') }}
+      - if: ${{ (steps.requirements-step.outputs.requirements_changed == 'true') || (steps.cache-venv.outputs.cache-hit == 'false') || steps.cache-venv.outputs.cache-hit == '' }}
         name: Set up venv
         run: |
           python${{ env.python-version }} -m pip install --upgrade pip
@@ -88,6 +88,10 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-
         env:
           cache-name: cache-venv
+      - name: Debug | Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
       - name: run pytest
         run: |
           python${{ env.python-version }} -m pip install --upgrade pip
