@@ -1,9 +1,12 @@
 import pytest
 from pytest_mock import MockerFixture
 
-@pytest.mark.xfail(reason="Not implemented")
-def test_todo():
-    pass
+
+class TestSmogMapScrapper:
+
+    @pytest.mark.xfail(reason="Not implemented")
+    def test_todo():
+        pass
 
 
 # FIXME ADD GLOBAL TESTS FOR PARSE_URLS TO SEE IF THE LIST IS FLAT!
