@@ -75,7 +75,7 @@ def reload_data():
 #   pass
 
 def main() -> None:
-    app.run(debug=True)
+    app.run(debug=True) # FIXME: change debug to a var
 
 
 if __name__ == "__main__":
