@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# FIXME JESZCZE NIE DZIALA DOBRZE BO STDERROR NIE OGARNIETY!
+# FIXME: STDERR to be fixed
 
 import sys
 
