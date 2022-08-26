@@ -1,37 +1,22 @@
+from re import template
+from flask import get_template_attribute
 import pytest
-from pytest_mock import MockerFixture
+from pytest_mock import MockerFixture, mocker
+from unittest.mock import patch
 import random
-from jinja2 import FileSystemLoader, Environment, Template
-import os
+from jinja2 import Template
 
 # from src.logging_setup.init_logging import setup_logging  # FIXME
 from src.scrapping.scrapper import GovScrapper, Smog, smog_factory
-
+from scrapper import TestScrapper
+TestScrapper.__abstractmethods__ = set()  # FIXME?
 # setup_logging()  # FIXME
 
 
-class TestGovScrapper:
+class TestGovScrapper(TestScrapper):
 
-    @pytest.fixture(scope="class")
-    def jinja2_env(self) -> Environment:
-        return Environment(
-            loader=FileSystemLoader(
-                os.path.abspath(
-                    os.path.dirname(__file__)
-                ) + '/templates',
-                encoding='utf8'
-            ),
-            trim_blocks=True,
-            lstrip_blocks=True
-        )
-
-    @pytest.fixture(scope="class")
-    def dabrowskiego_template(self, jinja2_env: Environment) -> Template:
-        return jinja2_env.get_template('dabrowskiego.j2')
-
-    @pytest.fixture(scope="class")
-    def polanka_template(self, jinja2_env: Environment) -> Template:
-        return jinja2_env.get_template('polanka.j2')
+    def get_dir(self) -> str:
+        return "govscrapper"
 
     @pytest.fixture(scope="class")
     def timestamp_parameters(self) -> dict[str, int]:
@@ -81,7 +66,10 @@ class TestGovScrapper:
         )
 
     @pytest.fixture(scope="class")
-    def polanka_smog(self, smog_data: dict[str, str | float]) -> Smog:
+    def polanka_smog(
+        self,
+        smog_data: dict[str, str | float]
+    ) -> Smog:
         return smog_factory(
             site="Poznań , ul. Polanka",
             **smog_data,
