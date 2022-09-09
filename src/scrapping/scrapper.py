@@ -1,4 +1,5 @@
-import requests
+# import requests
+from requests_html import HTMLSession
 import bs4
 import re
 from bs4 import BeautifulSoup
@@ -53,7 +54,7 @@ class SmogScrapper(ABC):
 
     def _is_url_valid(self, url: str) -> bool:
         try:
-            requests.get(url=url)
+            HTMLSession().get(url)
         except Exception as e:
             error_message: str = f"The given URL is invalid ({url})\n\t{e}"
             logger.error(error_message)
@@ -64,7 +65,7 @@ class SmogScrapper(ABC):
     def get_html(self, url: str) -> str:
         if self._is_url_valid(url):
             try:
-                return requests.get(url).content.decode()
+                return HTMLSession().get(url).content.decode()
             except Exception as e:
                 error_message = f"Failed to perform a GET request on: ({url})\n\t{e}"
                 logger.error(error_message)
@@ -387,19 +388,19 @@ class SmogMapScrapper(SmogScrapper):
                 return site_url, site_name
         return "", ""
 
-    def parse_polanka(self) -> Smog:
+    def parse_polanka_url(self) -> Smog:
         polanka_detail_url, district_name = (
             self._get_site_url_and_district_name(site='polanka')
         )
         return self._parse_url(url=polanka_detail_url, district_name=district_name)
 
-    def parse_dabrowskiego(self) -> Smog:
+    def parse_dabrowskiego_url(self) -> Smog:
         dabrowskiego_detail_url, district_name = (
             self._get_site_url_and_district_name(site='dabrowskiego')
         )
         return self._parse_url(url=dabrowskiego_detail_url, district_name=district_name)
 
-    def parse_rataje(self) -> Smog:
+    def parse_rataje_url(self) -> Smog:
         rataje_detail_url, district_name = (
             self._get_site_url_and_district_name(site='rataje')
         )
