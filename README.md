@@ -16,6 +16,7 @@ It provides REST endpoints to query the data.
 
 <h3>
  Done:
+
   - web-scrapping of 2 sites
   - flask smog endpoint (initial work done...)
   - periodic task queue (to be looked into...)
