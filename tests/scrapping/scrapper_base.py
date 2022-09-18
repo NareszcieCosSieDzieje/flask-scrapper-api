@@ -105,59 +105,87 @@ class TestScrapper(ABC):
         }
 
     @pytest.fixture(scope="class")
-    def template_variables(
+    def template_variables_wrapper(
         self,
         smog_data: dict[str, str | float],
         timestamp_parameters: dict[str, int],
+    ) -> Callable[[bool], dict[str, list[dict[str, str]]]]:
+
+        def _template_variables_wrapper(
+            order: bool = True,
+        ) -> dict[str, list[dict[str, str]]]:
+            separator: str = "." if order else "-"
+            data_inserted: bool = False  # TODO: remove this!
+            last_row_data: dict[str, str] = smog_data
+            table_rows: list[dict[str, str]] = []
+            MEASUREMENT_DAY: int = timestamp_parameters['day']
+            MEASUREMENT_HOUR: int = timestamp_parameters['hour']
+            left_empty_hours: list[int] = list(range(24 - MEASUREMENT_HOUR))
+            days: tuple[int, ...] = tuple(range(1, MEASUREMENT_DAY + 1))
+            hours: tuple[int, ...] = tuple(range(1, 24 + 1))
+            for day in days:
+                day_str: str = f"{day}" if len(str(day)) == 2 else f"0{day}"
+                if day == days[-1]:
+                    hours = tuple(range(1, MEASUREMENT_HOUR + 1))
+                    # If it's the last day, a non 24 hour cycle is possible  # FIXME
+                if separator == ".":
+                    date: str = f"{day_str}.0{timestamp_parameters['month']}.{timestamp_parameters['year']}"
+                else:
+                    date: str = f"{timestamp_parameters['year']}-0{timestamp_parameters['month']}-{day_str}"
+                for hour in hours:
+                    hour_str: str = f"{hour}" if len(str(hour)) == 2 else f"0{hour}"
+                    hour_str += ":00"
+                    if separator == "-":
+                        hour_str += ":00"
+                    table_row: dict[str, str] = {
+                        'date': date,
+                        'time': hour_str,
+                        'PM10': f"{float(random.randint(0, 10000))/10}".replace('.', ','),
+                        'PM2_5': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                        'O3': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                        'NO2': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
+                        'SO2': f"{float(random.randint(0, 13000)/10)}".replace('.', ','),
+                        'C6H6': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
+                        'CO': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
+                    }
+                    if not data_inserted and day == days[-1] and hour == hours[-1]:
+                        table_row |= last_row_data
+                        data_inserted = True
+                    table_rows.append(table_row)
+            if not order:
+                table_rows.reverse()
+            empty_rows: list[dict[str, str]] = []
+            day_str: str = f"{days[-1]}" if len(str(days[-1])) == 2 else f"0{days[-1]}"
+            date: str = f"{day_str}.04.2022"
+            for left_hour in left_empty_hours:
+                left_hour_str: str = f"{left_hour}" if len(str(left_hour)) == 2 else f"0{left_hour}"
+                left_hour_str += ":00"
+                empty_rows.append(
+                    {
+                        'date': date,
+                        'time': left_hour_str,
+                    }
+                )
+
+            return {
+                'table_rows': table_rows,
+                'empty_rows': empty_rows,
+            }
+        return _template_variables_wrapper
+
+    @pytest.fixture(scope="class")
+    def template_variables_last(
+        self,
+        template_variables_wrapper: Callable[[bool], dict[str, list[dict[str, str]]]],
     ) -> dict[str, list[dict[str, str]]]:
+        return template_variables_wrapper(order=True)
 
-        last_row_data: dict[str, str] = smog_data
-        table_rows: list[dict[str, str]] = []
-        MEASUREMENT_DAY: int = timestamp_parameters['day']
-        MEASUREMENT_HOUR: int = timestamp_parameters['hour']
-        left_empty_hours: list[int] = list(range(24 - MEASUREMENT_HOUR))
-        days: tuple[int, ...] = tuple(range(1, MEASUREMENT_DAY + 1))
-        hours: tuple[int, ...] = tuple(range(1, 24 + 1))
-        for day in days:
-            day_str: str = f"{day}" if len(str(day)) == 2 else f"0{day}"
-            if day == days[-1]:
-                hours = tuple(range(1, MEASUREMENT_HOUR + 1))
-                # If it's the last day, a non 24 hour cycle is possible  # FIXME
-            date: str = f"{day_str}.0{timestamp_parameters['month']}.{timestamp_parameters['year']}"
-            for hour in hours:
-                hour_str: str = f"{hour}" if len(str(hour)) == 2 else f"0{hour}"
-                hour_str += ":00"
-                table_row: dict[str, str] = {
-                    'date': date,
-                    'time': hour_str,
-                    'PM10': f"{float(random.randint(0, 10000))/10}".replace('.', ','),
-                    'PM2_5': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
-                    'O3': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
-                    'NO2': f"{float(random.randint(0, 10000)/10)}".replace('.', ','),
-                    'SO2': f"{float(random.randint(0, 13000)/10)}".replace('.', ','),
-                    'C6H6': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
-                    'CO': f"{float(random.randint(0, 10)/10)}".replace('.', ','),
-                }
-                if hour == hours[-1]:
-                    table_row |= last_row_data
-                table_rows.append(table_row)
-        empty_rows: list[dict[str, str]] = []
-        day_str: str = f"{days[-1]}" if len(str(days[-1])) == 2 else f"0{days[-1]}"
-        date: str = f"{day_str}.04.2022"
-        for left_hour in left_empty_hours:
-            left_hour_str: str = f"{left_hour}" if len(str(left_hour)) == 2 else f"0{left_hour}"
-            left_hour_str += ":00"
-            empty_rows.append(
-                {
-                    'date': date,
-                    'time': left_hour_str,
-                }
-            )
-
-        return {
-            'table_rows': table_rows,
-            'empty_rows': empty_rows,
-        }
+    @pytest.fixture(scope="class")
+    def template_variables_first(
+        self,
+        template_variables_wrapper: Callable[[bool], dict[str, list[dict[str, str]]]],
+    ) -> dict[str, list[dict[str, str]]]:
+        return template_variables_wrapper(order=False)
 
     @abstractmethod
     @pytest.fixture(scope="class")
