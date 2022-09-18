@@ -2164,7 +2164,7 @@ var ajax_object = {"ajax_url":"https:\/\/smogmap.pl\/wp-admin\/admin-ajax.php"};
         <tbody>
 			{% for table_row in table_rows %}
             <tr class="smoglevel-{{ table_row.level }}">
-                <td><time datetime="{{ table_row.date }}"> {{ table_row.timestamp }} </time></td>
+                <td><time datetime="{{ table_row.date }}"> {{ table_row.date }} {{ table_row.time }} </time></td>
                 <td>{{ table_row.CO }}</td>
                 <td>{{ table_row.NO2 }}</td>
                 <td>{{ table_row.O3 }}</td>
@@ -2174,9 +2174,9 @@ var ajax_object = {"ajax_url":"https:\/\/smogmap.pl\/wp-admin\/admin-ajax.php"};
                 <td>{{ table_row.C6H6 }}</td>
             </tr>
 			{% endfor %}
-  			{% for empty_row in empty_rows %}
+			{% for empty_row in empty_rows %}
             <tr class="smoglevel-{{ empty_row.level }}">
-                <td><time datetime="{{ empty_row.date }}"> {{ empty_row.timestamp }} </time></td>
+                <td><time datetime="{{ empty_row.date }}"> {{ empty_row.date }} {{ empty_row.time }} </time></td>
                 <td>td>
                 <td>/td>
                 <td>td>
