@@ -132,17 +132,13 @@ class AirQualityIndexDict(ClosestDict):
         @staticmethod
         @_check_args
         def min(*args):
-            ascending_list: list[AirQualityIndexDict.AirQualityIndexScale] = \
-                list(sorted(args))
-            if ascending_list:
+            if ascending_list :=  list(sorted(args)):
                 return ascending_list[0]
 
         @staticmethod
         @_check_args
         def max(*args):
-            descending_list: list[AirQualityIndexDict.AirQualityIndexScale] = \
-                list(sorted(args, reverse=True))
-            if descending_list:
+            if descending_list := list(sorted(args, reverse=True)):
                 return descending_list[0]
 
     def __init__(self, *args, **kwargs):
