@@ -2155,16 +2155,28 @@ var ajax_object = {"ajax_url":"https:\/\/smogmap.pl\/wp-admin\/admin-ajax.php"};
             <th data-column="7" class="tablesorter-header"><div class="tablesorter-header-inner">C6H6</div></th>
         </tr></thead>
         <tbody>
-			{% for m in measurements %}
-            <tr class="smoglevel-{{ m.level }}">
-                <td><time datetime="{{ m.date }}"> {{ m.timestamp }} </time></td>
-                <td>{{ m.CO }}</td>
-                <td>{{ m.NO2 }}</td>
-                <td>{{ m.O3 }}</td>
-                <td>{{ m.PM10 }}</td>
-                <td>{{ m.PM2_5 }}</td>
-                <td>{{ m.SO2 }}</td>
-                <td>{{ m.C6H6 }}</td>
+			{% for table_row in table_rows %}
+            <tr class="smoglevel-{{ table_row.level }}">
+                <td><time datetime="{{ table_row.date }}"> {{ table_row.date }} {{ table_row.time }} </time></td>
+                <td>{{ table_row.CO }}</td>
+                <td>{{ table_row.NO2 }}</td>
+                <td>{{ table_row.O3 }}</td>
+                <td>{{ table_row.PM10 }}</td>
+                <td>{{ table_row.PM2_5 }}</td>
+                <td>{{ table_row.SO2 }}</td>
+                <td>{{ table_row.C6H6 }}</td>
+            </tr>
+			{% endfor %}
+			{% for empty_row in empty_rows %}
+            <tr class="smoglevel-{{ empty_row.level }}">
+                <td><time datetime="{{ empty_row.date }}"> {{ empty_row.date }} {{ empty_row.time }} </time></td>
+                <td>td>
+                <td>/td>
+                <td>td>
+                <td></td>
+                <td>}</td>
+                <td>/td>
+                <td></td>
             </tr>
 			{% endfor %}
 		</tbody>
