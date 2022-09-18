@@ -324,14 +324,14 @@ class SmogMapScrapper(SmogScrapper):
             if table_body := data_table.find("tbody"):
                 indexes_not_found: set[int] = set()
                 datetime_re: re.Pattern = re.compile(
-                    r"(?P<Year>\d{4})-(?P<Month>\d{2})-(?P<Day>\d{2})\s+(?P<Time>\d+:\d+)"
+                    r"\s+(?P<Year>\d{4})-(?P<Month>\d{2})-(?P<Day>\d{2})\s+(?P<Time>\d+:\d+)"
                 )
 
                 for data_row in table_body.find_all("tr"):
                     smog_data: dict[int, str] = dict(
                         enumerate(td.text for td in data_row.find_all("td"))
                     )
-                    # FIXME ADD MEASUREMENT TIMESTAMP AS 'DATA' in DICT
+                    # FIXME ADD MEASUREMENT TIMESTAMP AS 'DATA' in DICT?
                     for parameter, column_idx in parameter_columns.items():
                         if(
                             (parameter_match := measurement_re.match(smog_data[column_idx]))
@@ -357,7 +357,7 @@ class SmogMapScrapper(SmogScrapper):
                             )
                     if not indexes_not_found:
                         break
-                    # measurement_units[f"{parameter}_unit"] = parameter_match['Unit']
+                    # measurement_units[f"{parameter}_unit"] = parameter_match['Unit'] # FIXME remove?
 
         return smog_factory(
             site=district_name,
@@ -366,7 +366,7 @@ class SmogMapScrapper(SmogScrapper):
             measurement_timestamp=measurement_timestamp,
         )
 
-    # cache for 1hr
+    # cache for 1hr # FIXME:?
     @cached(cache=TTLCache(maxsize=100, ttl=60 * 60))
     def _get_site_urls(self) -> dict[str, str]:
         SMOG_MAP_URL: str = "https://smogmap.pl/poznan/"
