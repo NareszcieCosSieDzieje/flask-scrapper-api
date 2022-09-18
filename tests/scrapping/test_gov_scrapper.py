@@ -21,13 +21,10 @@ class TestGovScrapper(TestScrapper):
     @pytest.fixture(scope="class")
     def template_variables(
         self,
+        template_variables_last: dict[str, list[dict[str, str]]],
     ) -> dict[str, str | list[dict[str, str]]]:
 
-        template_variables: dict[str, list[dict[str, str]]] = (
-            super().template_variables()
-        )
-
-        template_variables |= {
+        return template_variables_last | {
             'min_PM10': "6,1",
             'min_PM2_5': "5,1",
             'min_O3': "0",
@@ -50,8 +47,6 @@ class TestGovScrapper(TestScrapper):
             'average_C6H6': "0,1",
             'average_CO': "0,3",
         }
-
-        return template_variables
 
     @pytest.fixture(scope="class")
     def polanka_district_name(
