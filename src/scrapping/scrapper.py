@@ -1,7 +1,7 @@
 # import requests
-from requests_html import HTMLSession
 import bs4
 import re
+from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 from abc import ABC
 from functools import wraps
