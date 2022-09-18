@@ -43,7 +43,7 @@ jobs:
             echo "::set-output name=requirements_changed::false"
           fi;
       - name: Cache venv
-        id: cache-venv
+        id: cache-venv1
         uses: actions/cache@v3
         env:
           cache-name: cache-venv
@@ -72,7 +72,7 @@ jobs:
           source ./"${{ env.venv-name }}/bin/activate"
           python${{ env.python-version }} -m pip install -r requirements.txt
       - name: Cache venv
-        id: cache-venv
+        id: cache-venv2
         uses: actions/cache@v3
         env:
           cache-name: cache-venv
